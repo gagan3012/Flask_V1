@@ -1,0 +1,1157 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Question Evaluation Task</title>
+
+    <!-- Bootstrap & jQuery for Styling and Functionality -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"
+          integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"
+            integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"
+            integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://assets.crowd.aws/crowd-html-elements.js"></script>
+
+    <style>
+        .container {
+            margin-top: 30px;
+        }
+        .evaluation-header {
+            font-weight: bold;
+            margin-top: 30px;
+        }
+        .evaluation-box {
+            border: 1px dotted #464646;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .evaluation-radio-label {
+            margin-left: 0.5cm;
+        }
+    </style>
+</head>
+
+<!-- Prolific Form -->
+<crowd-form answer-format="flatten-objects">
+    <header>
+        <crowd-instructions link-text="View Instructions" link-type="button">
+            <short-summary>
+                <p>The text presented under the headline "Text to evaluate" is a summary of the data in the table "Data".
+                   Your task is to evaluate the <b>fluency</b> (does the text flow naturally?),
+                   <b>grammaticality</b> (does it have spelling/grammar errors?), and <b>clarity</b>
+                   (does it clearly express the data?).
+                </p>
+            </short-summary>
+            <detailed-instructions>
+                <h5> Each text under "Text to evaluate" describes the information in the table "Data".
+                    The table presents the properties and relations of the entities.
+                </h5>
+                <br>
+                <div class="row justify-content-center">
+                    <div class="col-6">
+                        <h5 class="text-center">Example Data</h5>
+                        <table id="ff-table" class="table table-striped small">
+                            <tr><td>Aarhus_Airport</td><td>location</td><td>Tirstrup</td></tr>
+                            <tr><td>Tirstrup</td><td>country</td><td>Denmark</td></tr>
+                            <tr><td>Denmark</td><td>capital</td><td>Copenhagen</td></tr>
+                            <tr><td>Tirstrup</td><td>isPartOf</td><td>Central_Denmark_Region</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <br>
+                <h5 class="text-center">Example Text to Evaluate</h5>
+                <br>
+                <div class="text-center" id="article" style="border: 1px dotted #464646;">
+                    <p class="lead" id="text_article">
+                        <h5 class="text-center">Aarhus Airport is located in Tirstrup, part of the Central Denmark region.
+                        The capital of the country is Copenhagen.</h5>
+                    </p>
+                </div>
+                <br>
+                <h5>Your task is to evaluate the quality of the texts that describe the data.
+                    Here are the three criteria and their definitions:
+                </h5>
+                <br>
+                <ul>
+                    <li><strong>Fluency:</strong> Does the text flow naturally?</li>
+                    <li><strong>Grammaticality:</strong> Does it have spelling/grammar errors?</li>
+                    <li><strong>Clarity:</strong> Does it clearly express the data?</li>
+                </ul>
+                <br>
+                <h5>Please rate these criteria on a scale from <b>Very Bad</b> to <b>Very Good</b>.
+                    Words in the text, including punctuations, are separated by whitespaces.
+                    Some words might have incorrect capitalization—please ignore this for your evaluation.
+                </h5>
+            </detailed-instructions>
+        </crowd-instructions>
+    </header>
+
+    <body class="container">
+
+    <div id="firstpage">
+        <h3>Dear participant,</h3>
+        <br>
+        <h5> You will be presented with 32 very short texts. Each text under the
+            headline "Text to evaluate" describes the information in the table
+            "Data". The table presents the properties and relations of the entities.
+            The example below shows the table and a short text describing the table
+            information.
+        </h5>
+        <br>
+
+        <div class="row justify-content-center">
+            <div class="col-6">
+                <h5 class="text-center">
+                    <strong>Data</strong>
+                </h5>
+                <table id="ff-table" class="table table-striped small">
+                    <tr>
+                        <td>Aarhus_Airport</td>
+                        <td>location</td>
+                        <td>Tirstrup</td>
+                    </tr>
+                    <tr>
+                        <td>Tirstrup</td>
+                        <td>country</td>
+                        <td>Denmark</td>
+                    </tr>
+                    <tr>
+                        <td>Denmark</td>
+                        <td>capital</td>
+                        <td>Copenhagen</td>
+                    </tr>
+                    <tr>
+                        <td>Tirstrup</td>
+                        <td>isPartOf</td>
+                        <td>Central_Denmark_Region</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <br>
+
+        <h5 class="text-center">
+            <strong>Text to evaluate</strong>
+        </h5>
+        <br>
+
+        <div class="text-center" id="article" style="border-color:#464646; border-style: dotted; border-width:1px">
+            <p class="lead" id="text_article">
+                <h5 class="text-center">Aarhus Airport is located in Tirstrup, part of the Central Denmark region. The capital
+                    of the country is Copenhagen.
+                </h5>
+            </p>
+        </div>
+        <br>
+
+        <h5>Your task is to evaluate the quality of the texts that describe the
+            data. Here are the three criteria and their definitions:
+        </h5>
+        <br>
+        <br>
+
+        <ul>
+
+
+            <li>
+                <strong>Grammaticality:</strong> is the text grammatical (no
+                spelling or grammatical errors)?
+            </li>
+
+
+        </ul>
+        <br>
+
+        <h5>Please rate these criteria on a scale from <b>Very Bad</b> to <b>Very
+            Good</b>. <strong>Please note that each criteria must be checked and rated.</strong>
+            <br>
+            As you may see by our example, all words in the text,
+            including punctuations, are separated by whitespaces. Furthermore, some
+            words might be wrongly written in uppercase or lowercase. We ask you
+            <strong>not to take these two points into account for your evaluation</strong>.
+        </h5>
+        <br>
+    </div>
+
+    <!-- Add demographic information section -->
+    <div class="container">
+
+        <h3>Demographic Information</h3>
+        <p>Please provide your gender, age, and English proficiency level.</p>
+
+        <form id="demographics-form">
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select class="form-control" id="gender" name="gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" class="form-control" id="age" name="age" required>
+            </div>
+
+            <div class="form-group">
+                <label for="english-proficiency">English Proficiency Level</label>
+                <select class="form-control" id="english-proficiency" name="english-proficiency">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Add evaluation items dynamically based on CSV -->
+    <div class="container">
+
+        <div id="item_1" class="evaluation-item">
+            <h5>Question 1</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_01}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_01}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item1"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item1"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item1"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item1"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item1"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item1"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item1"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_2" class="evaluation-item">
+            <h5>Question 2</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_02}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_02}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item2"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item2"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item2"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item2"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item2"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item2"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item2"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_3" class="evaluation-item">
+            <h5>Question 3</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_03}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_03}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item3"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item3"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item3"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item3"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item3"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item3"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item3"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_4" class="evaluation-item">
+            <h5>Question 4</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_04}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_04}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item4"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item4"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item4"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item4"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item4"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item4"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item4"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_5" class="evaluation-item">
+            <h5>Question 5</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_05}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_05}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item5"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item5"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item5"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item5"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item5"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item5"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item5"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_6" class="evaluation-item">
+            <h5>Question 6</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_06}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_06}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item6"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item6"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item6"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item6"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item6"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item6"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item6"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_7" class="evaluation-item">
+            <h5>Question 7</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_07}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_07}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item7"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item7"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item7"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item7"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item7"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item7"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item7"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_8" class="evaluation-item">
+            <h5>Question 8</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_08}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_08}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item8"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item8"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item8"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item8"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item8"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item8"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item8"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_9" class="evaluation-item">
+            <h5>Question 9</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_09}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_09}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item9"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item9"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item9"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item9"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item9"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item9"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item9"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_10" class="evaluation-item">
+            <h5>Question 10</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_10}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_10}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item10"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item10"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item10"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item10"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item10"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item10"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item10"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_11" class="evaluation-item">
+            <h5>Question 11</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_11}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_11}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item11"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item11"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item11"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item11"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item11"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item11"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item11"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_12" class="evaluation-item">
+            <h5>Question 12</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_12}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_12}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item12"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item12"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item12"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item12"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item12"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item12"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item12"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_13" class="evaluation-item">
+            <h5>Question 13</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_13}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_13}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item13"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item13"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item13"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item13"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item13"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item13"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item13"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_14" class="evaluation-item">
+            <h5>Question 14</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_14}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_14}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item14"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item14"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item14"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item14"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item14"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item14"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item14"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_15" class="evaluation-item">
+            <h5>Question 15</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_15}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_15}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item15"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item15"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item15"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item15"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item15"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item15"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item15"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_16" class="evaluation-item">
+            <h5>Question 16</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_16}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_16}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item16"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item16"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item16"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item16"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item16"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item16"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item16"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_17" class="evaluation-item">
+            <h5>Question 17</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_17}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_17}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item17"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item17"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item17"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item17"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item17"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item17"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item17"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_18" class="evaluation-item">
+            <h5>Question 18</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_18}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_18}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item18"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item18"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item18"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item18"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item18"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item18"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item18"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_19" class="evaluation-item">
+            <h5>Question 19</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_19}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_19}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item19"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item19"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item19"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item19"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item19"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item19"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item19"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_20" class="evaluation-item">
+            <h5>Question 20</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_20}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_20}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item20"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item20"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item20"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item20"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item20"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item20"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item20"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_21" class="evaluation-item">
+            <h5>Question 21</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_21}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_21}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item21"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item21"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item21"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item21"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item21"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item21"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item21"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_22" class="evaluation-item">
+            <h5>Question 22</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_22}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_22}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item22"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item22"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item22"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item22"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item22"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item22"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item22"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_23" class="evaluation-item">
+            <h5>Question 23</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_23}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_23}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item23"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item23"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item23"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item23"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item23"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item23"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item23"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_24" class="evaluation-item">
+            <h5>Question 24</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_24}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_24}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item24"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item24"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item24"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item24"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item24"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item24"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item24"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_25" class="evaluation-item">
+            <h5>Question 25</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_25}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_25}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item25"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item25"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item25"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item25"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item25"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item25"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item25"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_26" class="evaluation-item">
+            <h5>Question 26</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_26}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_26}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item26"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item26"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item26"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item26"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item26"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item26"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item26"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_27" class="evaluation-item">
+            <h5>Question 27</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_27}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_27}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item27"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item27"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item27"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item27"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item27"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item27"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item27"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_28" class="evaluation-item">
+            <h5>Question 28</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_28}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_28}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item28"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item28"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item28"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item28"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item28"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item28"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item28"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_29" class="evaluation-item">
+            <h5>Question 29</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_29}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_29}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item29"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item29"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item29"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item29"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item29"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item29"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item29"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_30" class="evaluation-item">
+            <h5>Question 30</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_30}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_30}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item30"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item30"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item30"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item30"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item30"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item30"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item30"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_31" class="evaluation-item">
+            <h5>Question 31</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_31}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_31}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item31"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item31"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item31"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item31"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item31"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item31"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item31"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="item_32" class="evaluation-item">
+            <h5>Question 32</h5>
+            <div class="evaluation-box">
+                <h6>Data:</h6>
+                ${triples_html_32}
+            </div>
+            <div class="evaluation-box">
+                <h6>Text to evaluate:</h6>
+                <p>${text_32}</p>
+            </div>
+            <div class="evaluation-box">
+                <h6>Grammaticality:</h6>
+                <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                <div class="form-group">
+                    <label class="evaluation-radio-label">Very Bad</label>
+                    <label class="radio-inline evaluation-radio-label"><input type="radio" value="1" required name="grammar-item32"> 1</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="2" required name="grammar-item32"> 2</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="3" required name="grammar-item32"> 3</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="4" required name="grammar-item32"> 4</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="5" required name="grammar-item32"> 5</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="6" required name="grammar-item32"> 6</label><label class="radio-inline evaluation-radio-label"><input type="radio" value="7" required name="grammar-item32"> 7</label>
+                    <label class="evaluation-radio-label">Very Good</label>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+<script>
+    function validateForm() {
+        let valid = true;
+        let missingFields = [];
+
+        // Loop through all evaluation items
+        document.querySelectorAll(".evaluation-item").forEach(function (item) {
+            let taskId = item.id.replace("item_", "");  // Extract task ID
+            let categories = ["grammar"]; // Add all evaluation categories here
+
+            categories.forEach(function (category) {
+                let radioButtons = document.querySelectorAll(`input[name="${category}-item${taskId}"]`);
+                let checkedButton = document.querySelector(`input[name="${category}-item${taskId}"]:checked`);
+
+                // Debugging: Log missing answers
+                if (radioButtons.length > 0 && !checkedButton) {
+                    valid = false;
+                    missingFields.push(`Question ${taskId} (${category})`);
+                    item.style.border = "2px solid red";  // Highlight missing section
+                    console.log(`Missing answer for Task ${taskId} (${category})`);
+                } else {
+                    item.style.border = "";  // Reset border if it's now filled
+                }
+            });
+        });
+
+        // If there are missing fields, show an error message
+        if (!valid) {
+            alert("Please complete all questions before submitting.
+
+Missing Fields:
+" + missingFields.join("
+"));
+        }
+
+        return valid;
+    }
+
+    function submitTask(event) {
+        // First, validate the form
+        if (!validateForm()) {
+            event.preventDefault();  // Prevent submission if validation fails
+            return;  // Stop further execution
+        }
+
+        // Collect Task Information
+        var task_id = document.getElementById("task_id").value;
+        var prolific_pid = document.getElementById("prolific_pid").value;
+        var session_id = document.getElementById("session_id").value;
+
+        // Collect Ratings
+        var ratings = {};
+        document.querySelectorAll("input[type=radio]:checked").forEach(function(radio) {
+            ratings[radio.name] = radio.value;
+        });
+
+        // Collect Demographic Information
+        var gender = document.getElementById("gender").value;
+        var age = document.getElementById("age").value;
+        var english_proficiency = document.getElementById("english-proficiency").value;
+
+        // Create JSON Object
+        var requestData = {
+            task_id: task_id,
+            prolific_pid: prolific_pid,
+            session_id: session_id,
+            responses: ratings,
+            demographics: {
+                gender: gender,
+                age: age,
+                english_proficiency: english_proficiency
+            }
+        };
+
+        console.log("Submitting Data:", requestData);
+
+        // Send Data via POST Request
+        fetch("http://127.0.0.1:5000/submit", {  // Replace with your actual Flask API URL
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Submission successful! Thank you.");
+            console.log("Server Response:", data);
+        })
+        .catch(error => {
+            alert("Submission failed. Please try again.");
+            console.error("Error:", error);
+        });
+    }
+
+    // Attach event listener to the submit button
+    document.getElementById("submit-button").addEventListener("click", submitTask);
+</script>
+
+<script>
+    // This script tag will start a countdown to alert the worker when 50 minutes have passed.
+    // The worker will have 10 minutes to finish the task before the HIT is automatically submitted.
+    function startWarningCountdown() {
+        var minutes = 50; //var minutes = 50;
+        var seconds = 0;
+        var totalSeconds = minutes * 60 + seconds;
+
+        var interval = setInterval(function () {
+            seconds--;
+            if (seconds < 0) {
+                minutes--;
+                seconds = 59;
+            }
+
+            if (minutes < 0) {
+                clearInterval(interval);
+                alert("50 minutes have passed! You have 10 minutes to finish the task! If you do not finish in time, your answers will not be used and you will not be paid.");
+            }
+        }, 1000);
+    }
+        function startFailedCountdown() {
+        var minutes = 60; //var minutes = 60;
+        var seconds = 0;
+        var totalSeconds = minutes * 60 + seconds;
+
+        var interval = setInterval(function() {
+            seconds--;
+            if (seconds < 0) {
+                minutes--;
+                seconds = 59;
+            }
+
+            if (minutes < 0) {
+
+                // Disable the submit button
+                document.getElementById("submit-button").disabled = true;
+                document.getElementById("submit-button").innerHTML = "You cannot submit this HIT anymore.";
+                document.getElementById("submit-button").classList.add("is-danger")
+
+                clearInterval(interval);
+
+                alert("The allocated time for this task has passed. Your answers will not be used and you will not be paid.");
+
+                // Redirect the worker to the Prolific app: https://app.prolific.com/
+                window.location.href = "https://app.prolific.co/";
+
+            }
+        }, 1000);
+    }
+
+startWarningCountdown();
+startFailedCountdown();
+</script>
+
+
+<script>
+    function validateForm() {
+        let validEvaluation = true;
+        let validDemographics = true;
+        let missingFields = [];
+
+        // Check if all evaluation questions are answered
+        document.querySelectorAll(".evaluation-item").forEach(function (item) {
+            let taskId = item.id.replace("item_", "");  // Extract task ID
+            let categories = ["grammar"]; // Add all evaluation categories here
+
+            categories.forEach(function (category) {
+                let radioButtons = document.querySelectorAll(`input[name="${category}-item${taskId}"]`);
+                let checkedButton = document.querySelector(`input[name="${category}-item${taskId}"]:checked`);
+
+                if (radioButtons.length > 0 && !checkedButton) {
+                    validEvaluation = false;
+                    missingFields.push(`Question ${taskId} (${category})`);
+                    item.style.border = "2px solid red";  // Highlight missing section
+                    console.log(`Missing answer for Task ${taskId} (${category})`);
+                } else {
+                    item.style.border = "";  // Reset border if it's now filled
+                }
+            });
+        });
+
+        // Check if demographic information is at least partially filled
+        let gender = document.getElementById("gender").value;
+        let age = document.getElementById("age").value;
+        let english_proficiency = document.getElementById("english-proficiency").value;
+
+        if (!gender && !age && !english_proficiency) {
+            validDemographics = false; // Demographic form is left empty
+        }
+
+        // Allow submission if EITHER condition is met
+        if (!validEvaluation && !validDemographics) {
+            alert("Please complete at least one: Either answer all evaluation questions or fill out demographic information.");
+            return false;
+        }
+
+        return true;
+    }
+
+    function submitTask(event) {
+        if (!validateForm()) {
+            event.preventDefault();  // Prevent submission if validation fails
+            return;  // Stop further execution
+        }
+
+        // Collect Task Information
+        var task_id = document.getElementById("task_id").value;
+        var prolific_pid = document.getElementById("prolific_pid").value;
+        var session_id = document.getElementById("session_id").value;
+
+        // Collect Ratings
+        var ratings = {};
+        document.querySelectorAll("input[type=radio]:checked").forEach(function(radio) {
+            ratings[radio.name] = radio.value;
+        });
+
+        // Collect Demographic Information
+        var demographics = {
+            gender: gender,
+            age: age,
+            english_proficiency: english_proficiency
+        };
+
+        // Create JSON Object
+        var requestData = {
+            task_id: task_id,
+            prolific_pid: prolific_pid,
+            session_id: session_id,
+            responses: ratings,
+            demographics: demographics
+        };
+
+        console.log("Submitting Data:", requestData);
+
+        // Send Data via POST Request
+        fetch("http://127.0.0.1:5000/submit", {  // Replace with your actual Flask API URL
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Submission successful! Thank you.");
+            console.log("Server Response:", data);
+        })
+        .catch(error => {
+            alert("Submission failed. Please try again.");
+            console.error("Error:", error);
+        });
+    }
+
+    // Attach event listener to the submit button
+    document.getElementById("submit-button").addEventListener("click", submitTask);
+</script>
+
+
+
+  <div class="d-flex justify-content-center mt-4">
+    <button class="btn btn-primary btn-lg" onclick="submitForms()">Submit</button>
+</div>
+
+
+</crowd-form>
+</body>
+</html>
