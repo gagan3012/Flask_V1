@@ -1,7 +1,7 @@
 # This is a python script that will create the required database tasks table.
 # DO NOT RUN THIS SCRIPT IF THE DATABASE ALREADY EXISTS. IT WILL DELETE THE EXISTING DATABASE AND CREATE A NEW ONE.
 
-COMPLETIONS_PER_TASK = 3  # Number of times each task should be completed by different participants
+COMPLETIONS_PER_TASK = 10  # Number of times each task should be completed by different participants
 NUMBER_OF_TASKS = 60  # Number of tasks to create in the database
 
 import sqlite3
