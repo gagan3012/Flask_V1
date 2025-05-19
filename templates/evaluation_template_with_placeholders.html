@@ -207,7 +207,12 @@
                     <option value="advanced">Advanced</option>
                 </select>
             </div>
-        </form>
+
+<input type="hidden" id="task_id" value="">
+<input type="hidden" id="prolific_pid" value="">
+<input type="hidden" id="session_id" value="">
+
+</form>
     </div>
 
     <!-- Add evaluation items dynamically based on CSV -->
@@ -1153,5 +1158,55 @@ startFailedCountdown();
 
 
 </crowd-form>
+
+<div class="text-center mt-4">
+    <button type="button" class="btn btn-success" id="submit-button">Submit Task</button>
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    document.getElementById("prolific_pid").value = urlParams.get("PROLIFIC_PID") || "";
+    document.getElementById("task_id").value = urlParams.get("STUDY_ID") || "";
+    document.getElementById("session_id").value = urlParams.get("SESSION_ID") || "";
+
+    document.getElementById("submit-button").addEventListener("click", function () {
+        // Collect task and Prolific IDs
+        const payload = {
+            task_id: document.getElementById("task_id").value,
+            prolific_pid: document.getElementById("prolific_pid").value,
+            session_id: document.getElementById("session_id").value,
+            responses: {},
+            demographics: {
+                gender: document.getElementById("gender").value,
+                age: document.getElementById("age").value,
+                english_proficiency: document.getElementById("english-proficiency").value,
+            }
+        };
+
+        // Gather selected ratings
+        document.querySelectorAll("input[type=radio]:checked").forEach(input => {
+            payload.responses[input.name] = input.value;
+        });
+
+        fetch("/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert("Thank you! Redirecting to Prolific...");
+            window.location.href = "https://app.prolific.com/submissions/complete?cc=ABC123";  // Replace ABC123
+        })
+        .catch(err => {
+            alert("Submission failed. Please try again.");
+            console.error(err);
+        });
+    });
+});
+</script>
+
 </body>
 </html>
