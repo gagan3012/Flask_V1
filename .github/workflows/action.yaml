@@ -1,10 +1,12 @@
+name: vivianCF
+
 on:
   push:
     branches:
       - '*'
       - '!**/merge'
     tags:
-      - '*'
+      - '*'           # build on any tag
       - '!*/merge'
   pull_request:
     branches:
@@ -15,36 +17,40 @@ on:
 env:
   python-version: "3.10"
 
+
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     name: Static code analysis
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.python-version }}
-      - name: Install development dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install .[dev]
-      - name: Find syntax errors
-        run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-      - name: Lint with flake8 (style checking)
-        if: always()
-        run: |
-          flake8 . --count  --max-complexity=10  --statistics
-      - name: Check format with black
-        if: always()
-        run: |
-          black --check .
-      # enable this to run unit tests, once such tests exist
-      # - name: Test with pytest
-      #   if: always()
-      #   run: |
-      #     pytest --cov=main --cov-report term-missing
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.python-version }}
+    - name: Install development dependencies
+        python -m pip install --upgrade pip
+        pip install .[dev]
+    - name: Find syntax errors
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    - name: Lint with flake8 (style checking)
+      if: always()
+      run: |
+        # exit-zero treats all errors as warnings. --exit-zero
+        flake8 . --count  --max-complexity=10  --statistics
+    - name: Check format with black
+      if: always()
+      run: |
+        black --check .
+    # enable this to run unit tests, once such tests exist
+    # - name: Test with pytest
+    #   if: always()
+    #   run: |
+    #     pytest --cov=main --cov-report term-missing
+
 
   build:
     runs-on: ubuntu-latest
@@ -52,24 +58,25 @@ jobs:
       packages: write
       contents: read
     steps:
-      # - name: Dump github context
-      #   run:   echo "$GITHUB_CONTEXT"
-      #   shell: bash
-      #   env:
-      #    GITHUB_CONTEXT: ${{ toJson(github) }}
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: https://ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.python-version }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build & Push the Docker image to github ghcr
-        run: |
-          # Add your docker build and push commands here
+    # - name: Dump github context
+    #   run:   echo "$GITHUB_CONTEXT"
+    #   shell: bash
+    #   env:
+    #    GITHUB_CONTEXT: ${{ toJson(github) }}
+    - name: Log in to the Container registry
+      uses: docker/login-action@v3
+      with:
+        registry: https://ghcr.io
+        # ensure permissions are enabled in the repository settings -> Actions -> General -> Workflow Permissions: Read and Write permissions
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.python-version }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Build & Push the Docker image to github ghcr
+      run: |
+        docker buildx build . --build-arg PYTHON_VERSION=${{ env.python-version }} --secret id=PIP_GITHUB_TOKEN  --platform linux/arm64,linux/amd64 --file Dockerfile --tag ghcr.io/vivianCF/${{github.event.repository.name}}:latest --push
