@@ -15,7 +15,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"
             integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://assets.crowd.aws/crowd-html-elements.js"></script>
+
 
     <style>
         .container {
@@ -888,104 +888,6 @@
     </div>
 
 
-<script>
-    function validateForm() {
-        let valid = true;
-        let missingFields = [];
-
-        // Loop through all evaluation items
-        document.querySelectorAll(".evaluation-item").forEach(function (item) {
-            let taskId = item.id.replace("item_", "");  // Extract task ID
-            let categories = ["grammar"]; // Add all evaluation categories here
-
-            categories.forEach(function (category) {
-                let radioButtons = document.querySelectorAll(`input[name="${category}-item${taskId}"]`);
-                let checkedButton = document.querySelector(`input[name="${category}-item${taskId}"]:checked`);
-
-                // Debugging: Log missing answers
-                if (radioButtons.length > 0 && !checkedButton) {
-                    valid = false;
-                    missingFields.push(`Question ${taskId} (${category})`);
-                    item.style.border = "2px solid red";  // Highlight missing section
-                    console.log(`Missing answer for Task ${taskId} (${category})`);
-                } else {
-                    item.style.border = "";  // Reset border if it's now filled
-                }
-            });
-        });
-
-        // If there are missing fields, show an error message
-        if (!valid) {
-            alert("Please complete all questions before submitting.
-
-Missing Fields:
-" + missingFields.join("
-"));
-        }
-
-        return valid;
-    }
-
-    function submitTask(event) {
-        // First, validate the form
-        if (!validateForm()) {
-            event.preventDefault();  // Prevent submission if validation fails
-            return;  // Stop further execution
-        }
-
-        // Collect Task Information
-        var task_id = document.getElementById("task_id").value;
-        var prolific_pid = document.getElementById("prolific_pid").value;
-        var session_id = document.getElementById("session_id").value;
-
-        // Collect Ratings
-        var ratings = {};
-        document.querySelectorAll("input[type=radio]:checked").forEach(function(radio) {
-            ratings[radio.name] = radio.value;
-        });
-
-        // Collect Demographic Information
-        var gender = document.getElementById("gender").value;
-        var age = document.getElementById("age").value;
-        var english_proficiency = document.getElementById("english-proficiency").value;
-
-        // Create JSON Object
-        var requestData = {
-            task_id: task_id,
-            prolific_pid: prolific_pid,
-            session_id: session_id,
-            responses: ratings,
-            demographics: {
-                gender: gender,
-                age: age,
-                english_proficiency: english_proficiency
-            }
-        };
-
-        console.log("Submitting Data:", requestData);
-
-        // Send Data via POST Request
-        fetch("http://127.0.0.1:5000/submit", {  // Replace with your actual Flask API URL
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(requestData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert("Submission successful! Thank you.");
-            console.log("Server Response:", data);
-        })
-        .catch(error => {
-            alert("Submission failed. Please try again.");
-            console.error("Error:", error);
-        });
-    }
-
-    // Attach event listener to the submit button
-    document.getElementById("submit-button").addEventListener("click", submitTask);
-</script>
 
 <script>
     // This script tag will start a countdown to alert the worker when 50 minutes have passed.
@@ -1032,7 +934,7 @@ Missing Fields:
                 alert("The allocated time for this task has passed. Your answers will not be used and you will not be paid.");
 
                 // Redirect the worker to the Prolific app: https://app.prolific.com/
-                window.location.href = "https://app.prolific.co/";
+                window.location.href = "https://app.prolific.com/";
 
             }
         }, 1000);
@@ -1040,10 +942,7 @@ Missing Fields:
 
 startWarningCountdown();
 startFailedCountdown();
-</script>
 
-
-<script>
     function validateForm() {
         let validEvaluation = true;
         let validDemographics = true;
@@ -1105,6 +1004,12 @@ startFailedCountdown();
         });
 
         // Collect Demographic Information
+        var gender = document.getElementById("gender").value;
+        var age = document.getElementById("age").value;
+        var english_proficiency = document.getElementById("english-proficiency").value;
+
+
+        // Collect Demographic Information
         var demographics = {
             gender: gender,
             age: age,
@@ -1123,7 +1028,7 @@ startFailedCountdown();
         console.log("Submitting Data:", requestData);
 
         // Send Data via POST Request
-        fetch("http://127.0.0.1:5000/submit", {  // Replace with your actual Flask API URL
+        fetch("/submit", {  // Replace with your actual Flask API URL
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -1132,8 +1037,9 @@ startFailedCountdown();
         })
         .then(response => response.json())
         .then(data => {
-            alert("Submission successful! Thank you.");
+            alert("Submission successful! Thank you. Redirecting to prolific for payment");
             console.log("Server Response:", data);
+            window.location.href = "{{PROLIFIC_COMPLETION_URL}}";
         })
         .catch(error => {
             alert("Submission failed. Please try again.");
@@ -1141,14 +1047,12 @@ startFailedCountdown();
         });
     }
 
-    // Attach event listener to the submit button
-    document.getElementById("submit-button").addEventListener("click", submitTask);
 </script>
 
 
 
   <div class="d-flex justify-content-center mt-4">
-    <button class="btn btn-primary btn-lg" onclick="submitForms()">Submit</button>
+    <button class="btn btn-primary btn-lg" id="submit-button" onclick="submitTask()">Submit</button>
 </div>
 
 

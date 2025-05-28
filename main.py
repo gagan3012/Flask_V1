@@ -9,7 +9,8 @@ import os
 import DataManager as dm
 
 MAX_TIME = 3600  # seconds
-
+PROLIFIC_COMPLETION_URL='https://www.google.com'
+##https://app.prolific.com/submissions/complete?cc=CZ3UY0IC
 # Load the data from CSV
 df = pd.read_csv("pivoted_output2.csv")
 column_names = df.columns.values.tolist()
@@ -49,7 +50,7 @@ def preprocess_html(html_content, row, task_id=-1):
 
 # === Main Routes ===
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/submit', methods=[ 'POST'])
 def index():
     if request.method == 'POST':
         print(request.json)
@@ -107,7 +108,8 @@ def study():
     html_content = preprocess_html(template, df.iloc[task_number], task_id)
     html_content += f'<input type="hidden" id="prolific_pid" value="{prolific_pid}">'
     html_content += f'<input type="hidden" id="session_id" value="{session_id}">'
-    return render_template_string(html_content)
+    html_content += f'<input type="hidden" id="task_id" value="{task_id}">'
+    return render_template_string(html_content,PROLIFIC_COMPLETION_URL=PROLIFIC_COMPLETION_URL)
 
 
 @app.route('/tasksallocated')
