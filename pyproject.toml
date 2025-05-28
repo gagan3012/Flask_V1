@@ -22,6 +22,7 @@ dev = ["black", "black[jupyter]", "flake8", "isort", "mypy", "pytest", "pytest-c
 
 [tool.black]
 line-length = 140
+exclude = "src/|.conda|.venv"
 
 
 
