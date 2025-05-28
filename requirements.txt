@@ -18,23 +18,4 @@ tzlocal==5.3.1
 Werkzeug==3.1.3
 zipp==3.21.0
 
-[project]
-name = "med-eb-project-template-python"
-version = "0.1"
-readme = "README.md"
-# the rest of this block is commented by #
-# description = "Project description, only used when published to PyPI"
-# requires-python = ">=3.8"
-# authors = [{name = "Your Name here"}]
-# license = {text = "Apache-2.0"}
-# classifiers = [
-#    "License :: OSI Approved :: Apache Software License"
-# ]
 
-dependencies = ["python-dotenv", "httpx", "eb-webdav-gcp @ git+https://git@github.com/badenova/eb-webdav-gcp.git"]
-
-[project.optional-dependencies]
-dev = ["black", "black[jupyter]", "flake8", "isort", "mypy", "pytest", "pytest-cov"]
-
-[tool.black]
-line-length = 140

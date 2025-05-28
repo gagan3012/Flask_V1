@@ -1,0 +1,32 @@
+[project]
+name = "reproHum-project-template-python"
+version = "0.1.0"
+description = "Short description of the project."
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [{name = "Your Name", email = "you@example.com"}]
+license = {text = "Apache-2.0"}
+classifiers = [
+    "License :: OSI Approved :: Apache Software License"
+]
+dependencies = [
+    "python-dotenv", "httpx", "tzdata", "tzlocal", "Werkzeug", "zipp",
+    "numpy", "packaging", "pandas", "python-dateutil", "pytz", "six",
+    "Flask", "gunicorn", "importlib_metadata", "itsdangerous", "Jinja2",
+    "MarkupSafe", "APScheduler", "blinker", "click"
+]
+
+
+[project.optional-dependencies]
+dev = ["black", "black[jupyter]", "flake8", "isort", "mypy", "pytest", "pytest-cov"]
+
+[tool.black]
+line-length = 140
+
+
+
+
+
+
+
+
