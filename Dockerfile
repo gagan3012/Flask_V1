@@ -13,7 +13,6 @@ ENV PATH="/opt/venv/bin:$PATH"
 #nowaday packages could be in requirements.txt, setup.py or pyproject.toml. just copy all of it, including local packages
 COPY . /app/
 
-
 # populate venv
 RUN pip install -U .
 
@@ -31,4 +30,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY . /app/
 
 
-CMD ["bash", "run_with_healthcheck.sh"]
+CMD ["python", "main.py"]
