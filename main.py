@@ -27,6 +27,7 @@ def triplet_list_to_html(triplet_list):
     return table
 
 
+
 # === Replace placeholders in HTML with actual values ===
 def preprocess_html(html_content, row, task_id=-1):
     for column_name, value in row.items():
@@ -47,7 +48,9 @@ def preprocess_html(html_content, row, task_id=-1):
     html_content = html_content.replace("${task_id}", str(task_id))
     return html_content
 
-
+@app.route("/")
+def hello_world():
+    return "<p>Hello, World!</p>"
 # === Main Routes ===
 
 @app.route('/submit', methods=[ 'POST'])
