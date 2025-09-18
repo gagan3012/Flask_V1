@@ -1,3 +1,14 @@
+# /// script
+# dependencies = [
+#   "flask",
+#   "pandas",
+#   "apscheduler",
+#   "sqlalchemy",
+#   "psycopg2-binary",
+# ]
+# ///
+
+
 # Webapp for hosting Prolific surveys for the Edinburgh Napier University lab (reprohum project)
 import json
 from datetime import datetime
@@ -146,4 +157,5 @@ scheduler.start()
 
 # === CLI Entry Point ===
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
