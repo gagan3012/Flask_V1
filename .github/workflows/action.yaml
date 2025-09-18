@@ -1,4 +1,4 @@
-name: vivianCF
+name: gagan3012
 
 on:
   push:
@@ -45,4 +45,15 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Build & Push the Docker image to github ghcr
         run: |
-          docker buildx build . --build-arg PYTHON_VERSION=3.10 --file Dockerfile --tag ghcr.io/viviancf/flask_v1:latest --push
+          docker buildx build . --build-arg PYTHON_VERSION=3.10 --file Dockerfile --tag ghcr.io/gagan3012/flask_v1:latest --push
+
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Render
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
