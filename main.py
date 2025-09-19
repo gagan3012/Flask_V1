@@ -12,7 +12,7 @@
 # Webapp for hosting Prolific surveys for the Edinburgh Napier University lab (reprohum project)
 import json
 from datetime import datetime
-from flask import Flask, render_template, request, render_template_string
+from flask import Flask, render_template, request, render_template_string, redirect, url_for
 import pandas as pd
 import ast
 import os
@@ -21,6 +21,7 @@ import DataManager as dm
 
 MAX_TIME = 3600  # seconds
 PROLIFIC_COMPLETION_URL='https://www.google.com'
+# PROLIFIC_COMPLETION_URL = 'https://app.prolific.com/submissions/complete?cc=CZ3UY0IC'
 ##https://app.prolific.com/submissions/complete?cc=CZ3UY0IC
 # Load the data from CSV
 df = pd.read_csv("pivoted_output2.csv")
@@ -61,7 +62,11 @@ def preprocess_html(html_content, row, task_id=-1):
 
 @app.route("/")
 def hello_world():
-    return "<p>Hello, World!</p>"
+    # direct to /study while keeping the request args
+    if request.args:
+        return redirect(url_for('study', **request.args))
+    # return redirect(url_for('study'))   
+    # return "<p>Hello, World!</p>"
 # === Main Routes ===
 
 @app.route('/submit', methods=[ 'POST'])
@@ -93,38 +98,154 @@ def row(row_id):
     if row_id >= len(df):
         return "Row ID out of range", 404
 
-    with open("templates/evaluation_template_with_placeholders.html", "r", encoding="utf-8") as f:
+    with open("templates/eval_template_v2.html", "r", encoding="utf-8") as f:
         template = f.read()
 
     processed_html = preprocess_html(template, df.iloc[row_id], task_id=row_id)
     return render_template_string(processed_html)
 
 
-@app.route('/study/')
+# @app.route('/study/')
+# def study():
+#     prolific_pid = request.args.get('PROLIFIC_PID')
+#     session_id = request.args.get('SESSION_ID')
+
+#     if prolific_pid is None or session_id is None:
+#         return "PROLIFIC_PID and SESSION_ID are required parameters.", 400
+
+#     task_id, task_number = dm.allocate_task(prolific_pid, session_id)
+
+#     if task_id == "Database Error - Please try again, if the problem persists contact us." and task_number == -1:
+#         return task_id, 500
+
+#     if task_id is None:
+#         return "No tasks available", 400
+
+#     with open("templates/evaluation_template_with_placeholders.html", "r", encoding="utf-8") as f:
+#         template = f.read()
+
+#     df_row_index = task_number % len(df) if len(df) > 0 else 0
+
+#     html_content = preprocess_html(template, df.iloc[df_row_index], task_id)
+#     html_content += f'<input type="hidden" id="prolific_pid" value="{prolific_pid}">'
+#     html_content += f'<input type="hidden" id="session_id" value="{session_id}">'
+#     html_content += f'<input type="hidden" id="task_id" value="{task_id}">'
+#     return render_template_string(html_content,PROLIFIC_COMPLETION_URL=PROLIFIC_COMPLETION_URL)
+
+@app.route("/study/")
 def study():
-    prolific_pid = request.args.get('PROLIFIC_PID')
-    session_id = request.args.get('SESSION_ID')
+    prolific_pid = request.args.get("PROLIFIC_PID")
+    session_id = request.args.get("SESSION_ID")
 
     if prolific_pid is None or session_id is None:
         return "PROLIFIC_PID and SESSION_ID are required parameters.", 400
 
     task_id, task_number = dm.allocate_task(prolific_pid, session_id)
 
-    if task_id == "Database Error - Please try again, if the problem persists contact us." and task_number == -1:
+    if (
+        task_id
+        == "Database Error - Please try again, if the problem persists contact us."
+        and task_number == -1
+    ):
         return task_id, 500
 
     if task_id is None:
         return "No tasks available", 400
 
-    with open("templates/evaluation_template_with_placeholders.html", "r", encoding="utf-8") as f:
+    # Use modulo to wrap around the DataFrame
+    df_row_index = task_number % len(df) if len(df) > 0 else 0
+
+    # Read the template
+    with open("templates/eval_template_v2.html", "r", encoding="utf-8") as f:
         template = f.read()
 
-    html_content = preprocess_html(template, df.iloc[task_number], task_id)
+    # Generate all 32 question cards dynamically
+    question_cards_html = ""
+
+    # Determine total questions based on CSV columns
+    text_columns = [col for col in df.columns if col.startswith("text_")]
+    total_questions = len(text_columns)
+
+    for i in range(1, total_questions + 1):
+        padded_num = str(i).zfill(2)  # Pad with zeros (01, 02, etc.)
+
+        # Determine navigation buttons
+        prev_button = f'<button class="btn btn-outline-secondary btn-nav prev-btn" {"disabled" if i == 1 else ""} onclick="showPrevQuestion()">Previous</button>'
+
+        if i == total_questions:
+            next_button = '<button class="btn btn-success btn-nav finish-btn" onclick="showSubmitCard()">Finish</button>'
+        else:
+            next_button = '<button class="btn btn-primary btn-nav next-btn" onclick="showNextQuestion()">Next</button>'
+
+        card_html = f"""
+        <!-- Question {i} -->
+        <div class="card intro-card question-card" id="question-card-{i}">
+            <div class="card-header">
+                <h5 class="mb-0">Question {i} of {total_questions}</h5>
+            </div>
+            <div class="card-body">
+                <div class="evaluation-box">
+                    <h6>Data:</h6>
+                    <div class="table-responsive">
+                        ${{triples_html_{padded_num}}}
+                    </div>
+                </div>
+                <div class="evaluation-box">
+                    <h6>Text to evaluate:</h6>
+                    <p class="lead">${{text_{padded_num}}}</p>
+                </div>
+                <div class="evaluation-box">
+                    <h6>Grammaticality:</h6>
+                    <p>Is the text grammatical (no spelling or grammatical errors)?</p>
+                    <div class="rating-container">
+                        <div class="rating-label">Very<br>Bad</div>
+                        <div class="rating-btn" data-value="1" data-name="grammar-item{i}">1</div>
+                        <div class="rating-btn" data-value="2" data-name="grammar-item{i}">2</div>
+                        <div class="rating-btn" data-value="3" data-name="grammar-item{i}">3</div>
+                        <div class="rating-btn" data-value="4" data-name="grammar-item{i}">4</div>
+                        <div class="rating-btn" data-value="5" data-name="grammar-item{i}">5</div>
+                        <div class="rating-btn" data-value="6" data-name="grammar-item{i}">6</div>
+                        <div class="rating-btn" data-value="7" data-name="grammar-item{i}">7</div>
+                        <div class="rating-label">Very<br>Good</div>
+                    </div>
+                </div>
+                
+                <div class="navigation-buttons">
+                    {prev_button}
+                    {next_button}
+                </div>
+                
+                <p class="swipe-hint mt-4">
+                    <small>Use the navigation buttons to move between questions</small>
+                </p>
+            </div>
+        </div>
+        """
+
+        question_cards_html += card_html
+
+    # Replace the placeholder in the template with generated cards
+    template = template.replace("<!-- DYNAMIC_QUESTION_CARDS -->", question_cards_html)
+
+    # Update the total questions in JavaScript
+    template = template.replace(
+        "const totalQuestions = 32;", f"const totalQuestions = {total_questions};"
+    )
+    template = template.replace(
+        "out of 32 questions", f"out of {total_questions} questions"
+    )
+
+    # Process the template with CSV data
+    html_content = preprocess_html(template, df.iloc[df_row_index], task_id)
+
+    # Add hidden form fields
     html_content += f'<input type="hidden" id="prolific_pid" value="{prolific_pid}">'
     html_content += f'<input type="hidden" id="session_id" value="{session_id}">'
     html_content += f'<input type="hidden" id="task_id" value="{task_id}">'
-    return render_template_string(html_content,PROLIFIC_COMPLETION_URL=PROLIFIC_COMPLETION_URL)
 
+    return render_template_string(
+        html_content, PROLIFIC_COMPLETION_URL=PROLIFIC_COMPLETION_URL
+    )
 
 @app.route('/tasksallocated')
 def tasksallocated():

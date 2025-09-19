@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Evaluation Task</title>
+
+    <!-- Bootstrap, jQuery, and Swiper CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        
+        .card-header {
+            background-color: #4285F4;
+            color: white;
+            border-top-left-radius: 15px !important;
+            border-top-right-radius: 15px !important;
+            padding: 15px 20px;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .evaluation-box {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            background-color: white;
+        }
+        
+        .rating-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .rating-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+            font-weight: bold;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .rating-btn:hover {
+            transform: scale(1.1);
+            border-color: #4285F4;
+        }
+        
+        .rating-btn.selected {
+            background-color: #4285F4;
+            color: white;
+            border-color: #4285F4;
+        }
+        
+        .rating-label {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin: 5px;
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .btn-nav {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+        }
+        
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            z-index: 1000;
+            background-color: #e0e0e0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #4285F4;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .intro-card {
+            max-width: 800px;
+            margin: 30px auto;
+        }
+        
+        .swipe-hint {
+            text-align: center;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        /* Animation for card transitions */
+        .animate-in {
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hide all cards initially except intro */
+        .question-card {
+            display: none;
+        }
+        
+        .question-card.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="container py-4">
+        <!-- Introduction Card -->
+        <div class="card intro-card animate-in" id="intro-card">
+            <div class="card-header">
+                <h3>Welcome to the Evaluation Study</h3>
+            </div>
+            <div class="card-body">
+                <h5>Dear participant,</h5>
+                <p>You will be presented with texts. Each text describes the information in a data table. Your task is to evaluate the grammatical quality of each text.</p>
+                
+                <div class="evaluation-box">
+                    <h6 class="text-center"><strong>Example Data</strong></h6>
+                    <table class="table table-striped small">
+                        <tr>
+                            <td>Aarhus_Airport</td>
+                            <td>location</td>
+                            <td>Tirstrup</td>
+                        </tr>
+                        <tr>
+                            <td>Tirstrup</td>
+                            <td>country</td>
+                            <td>Denmark</td>
+                        </tr>
+                        <tr>
+                            <td>Denmark</td>
+                            <td>capital</td>
+                            <td>Copenhagen</td>
+                        </tr>
+                        <tr>
+                            <td>Tirstrup</td>
+                            <td>isPartOf</td>
+                            <td>Central_Denmark_Region</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="evaluation-box">
+                    <h6 class="text-center"><strong>Example Text to Evaluate</strong></h6>
+                    <p class="lead text-center">Aarhus Airport is located in Tirstrup, part of the Central Denmark region. The capital of the country is Copenhagen.</p>
+                </div>
+                
+                <h5 class="mt-4">Your task is to evaluate:</h5>
+                <ul>
+                    <li><strong>Grammaticality:</strong> Is the text grammatical (no spelling or grammatical errors)?</li>
+                </ul>
+                
+                <p class="mt-3">Please note: Words in the text might have spaces between punctuation or incorrect capitalization—please ignore these formatting issues in your evaluation.</p>
+                
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Demographic Information</h5>
+                        <form id="demographics-form">
+                            <div class="form-group">
+                                <label for="gender">Gender</label>
+                                <select class="form-control" id="gender" name="gender">
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="age">Age</label>
+                                <input type="number" class="form-control" id="age" name="age" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="english-proficiency">English Proficiency Level</label>
+                                <select class="form-control" id="english-proficiency" name="english-proficiency">
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button class="btn btn-lg btn-primary" id="start-button">Start Evaluation</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dynamic Question Cards will be inserted here -->
+        <!-- DYNAMIC_QUESTION_CARDS -->
+        
+        <!-- Submit Card -->
+        <div class="card intro-card" id="submit-card" style="display:none;">
+            <div class="card-header">
+                <h3>Review & Submit</h3>
+            </div>
+            <div class="card-body text-center">
+                <h5>Thank you for completing the evaluation!</h5>
+                <p>You've answered <span id="answered-count">0</span> out of 32 questions.</p>
+                <p id="missing-questions" class="text-danger"></p>
+                
+                <button class="btn btn-lg btn-primary" id="final-submit-button" onclick="submitTask()">Submit Evaluation</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Store all responses
+    let responses = {};
+    let currentQuestionIndex = 1;
+    const totalQuestions = 32;
+
+    // Initialize the interface when document is ready
+    $(document).ready(function() {
+        // Start button click handler
+        $("#start-button").click(function() {
+            $("#intro-card").hide();
+            showQuestionCard(1); // Show first question
+        });
+        
+        // Add click handlers for rating buttons
+        $(document).on('click', '.rating-btn', function() {
+            // Remove 'selected' class from siblings
+            $(this).siblings('.rating-btn').removeClass('selected');
+            // Add 'selected' class to clicked button
+            $(this).addClass('selected');
+            
+            // Store the response
+            let questionName = $(this).data('name');
+            let value = $(this).data('value');
+            responses[questionName] = value;
+            
+            // Update the answered count
+            updateAnsweredCount();
+        });
+        
+        // Warning and timeout counters
+        startWarningCountdown();
+        startFailedCountdown();
+    });
+
+    // Show specific question card
+    function showQuestionCard(questionNumber) {
+        // Hide all question cards
+        document.querySelectorAll('.question-card').forEach(card => {
+            card.classList.remove('active');
+            card.style.display = 'none';
+        });
+        
+        // Show specific card
+        const targetCard = document.getElementById(`question-card-${questionNumber}`);
+        if (targetCard) {
+            targetCard.style.display = 'block';
+            targetCard.classList.add('active');
+            currentQuestionIndex = questionNumber;
+            updateProgressBar(questionNumber, totalQuestions + 1);
+        }
+    }
+
+    // Navigation functions
+    function showNextQuestion() {
+        if (currentQuestionIndex < totalQuestions) {
+            showQuestionCard(currentQuestionIndex + 1);
+        }
+    }
+
+    function showPrevQuestion() {
+        if (currentQuestionIndex > 1) {
+            showQuestionCard(currentQuestionIndex - 1);
+        }
+    }
+
+    function showSubmitCard() {
+        // Hide all question cards
+        document.querySelectorAll('.question-card').forEach(card => {
+            card.classList.remove('active');
+            card.style.display = 'none';
+        });
+        
+        updateAnsweredCount();
+        document.getElementById('submit-card').style.display = 'block';
+        updateProgressBar(totalQuestions + 1, totalQuestions + 1);
+    }
+
+    function updateProgressBar(current, total) {
+        const percentage = (current / total) * 100;
+        $("#progressBar").css("width", percentage + "%");
+    }
+    
+    function updateAnsweredCount() {
+        const answeredCount = Object.keys(responses).length;
+        $("#answered-count").text(answeredCount);
+        
+        // Check for missing questions
+        if (answeredCount < totalQuestions) {
+            let missingQuestions = [];
+            for (let i = 1; i <= totalQuestions; i++) {
+                if (!responses[`grammar-item${i}`]) {
+                    missingQuestions.push(i);
+                }
+            }
+            
+            if (missingQuestions.length > 0) {
+                $("#missing-questions").html(`Missing responses for questions: ${missingQuestions.join(', ')}`);
+            } else {
+                $("#missing-questions").html("");
+            }
+        } else {
+            $("#missing-questions").html("");
+        }
+    }
+
+    // Time warning functions from original code
+    function startWarningCountdown() {
+        var minutes = 50;
+        var seconds = 0;
+
+        var interval = setInterval(function () {
+            seconds--;
+            if (seconds < 0) {
+                minutes--;
+                seconds = 59;
+            }
+
+            if (minutes < 0) {
+                clearInterval(interval);
+                alert("50 minutes have passed! You have 10 minutes to finish the task! If you do not finish in time, your answers will not be used and you will not be paid.");
+            }
+        }, 1000);
+    }
+    
+    function startFailedCountdown() {
+        var minutes = 60;
+        var seconds = 0;
+
+        var interval = setInterval(function() {
+            seconds--;
+            if (seconds < 0) {
+                minutes--;
+                seconds = 59;
+            }
+
+            if (minutes < 0) {
+                document.getElementById("final-submit-button").disabled = true;
+                document.getElementById("final-submit-button").innerHTML = "You cannot submit this task anymore.";
+                document.getElementById("final-submit-button").classList.add("is-danger");
+
+                clearInterval(interval);
+                alert("The allocated time for this task has passed. Your answers will not be used and you will not be paid.");
+                window.location.href = "https://app.prolific.com/";
+            }
+        }, 1000);
+    }
+    
+    // Submit task function
+    function submitTask() {
+        // Validate responses
+        let answeredCount = Object.keys(responses).length;
+        if (answeredCount < totalQuestions) {
+            if (!confirm(`You've only answered ${answeredCount} out of ${totalQuestions} questions. Are you sure you want to submit?`)) {
+                return;
+            }
+        }
+        
+        // Collect Task Information
+        var task_id = document.getElementById("task_id").value;
+        var prolific_pid = document.getElementById("prolific_pid").value;
+        var session_id = document.getElementById("session_id").value;
+
+        // Collect Demographic Information
+        var gender = document.getElementById("gender").value;
+        var age = document.getElementById("age").value;
+        var english_proficiency = document.getElementById("english-proficiency").value;
+
+        var demographics = {
+            gender: gender,
+            age: age,
+            english_proficiency: english_proficiency
+        };
+
+        // Create JSON Object
+        var requestData = {
+            task_id: task_id,
+            prolific_pid: prolific_pid,
+            session_id: session_id,
+            responses: responses,
+            demographics: demographics
+        };
+
+        console.log("Submitting Data:", requestData);
+
+        // Send Data via POST Request
+        fetch("/submit", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Submission successful! Thank you. Redirecting to prolific for payment");
+            console.log("Server Response:", data);
+            window.location.href = "{{PROLIFIC_COMPLETION_URL}}";
+        })
+        .catch(error => {
+            alert("Submission failed. Please try again.");
+            console.error("Error:", error);
+        });
+    }
+</script>
+
+<!-- Hidden inputs for task info -->
+<input type="hidden" id="prolific_pid" value="">
+<input type="hidden" id="session_id" value="">
+<input type="hidden" id="task_id" value="">
+
+</body>
+</html>
