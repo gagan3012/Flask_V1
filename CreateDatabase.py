@@ -109,11 +109,11 @@ from uuid import uuid4
 def create_connection(db_file="database.db"):
     """create a database connection to PostgreSQL (Supabase) or SQLite"""
     # Fixed connection parameters
-    USER = "postgres.imrthbvbrfnqkoycbrqk"
-    PASSWORD = "ufRrcQOLx5iYMqVY"
-    HOST = "aws-1-eu-north-1.pooler.supabase.com"
-    PORT = "6543"
-    DBNAME = "postgres"
+    USER = os.getenv("DB_USER")
+    PASSWORD = os.getenv("DB_PASSWORD")
+    HOST = os.getenv("DB_HOST")
+    PORT = os.getenv("DB_PORT")
+    DBNAME = os.getenv("DB_NAME")
 
     if USER and PASSWORD and HOST and PORT and DBNAME:
         # Use Supabase PostgreSQL with retry logic
