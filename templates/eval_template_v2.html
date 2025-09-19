@@ -415,11 +415,12 @@
                 return;
             }
         }
-        
-        // Collect Task Information
+
+        // Collect Task Information which is stored in hidden inputs
         var task_id = document.getElementById("task_id").value;
         var prolific_pid = document.getElementById("prolific_pid").value;
         var session_id = document.getElementById("session_id").value;
+        console.log("Task Info:", { task_id, prolific_pid, session_id });
 
         // Collect Demographic Information
         var gender = document.getElementById("gender").value;
@@ -465,9 +466,9 @@
 </script>
 
 <!-- Hidden inputs for task info -->
-<input type="hidden" id="prolific_pid" value="">
-<input type="hidden" id="session_id" value="">
-<input type="hidden" id="task_id" value="">
+<input type="hidden" id="prolific_pid" value="prolific_pid_value">
+<input type="hidden" id="session_id" value="session_id_value">
+<input type="hidden" id="task_id" value="task_id_value">
 
 </body>
 </html>

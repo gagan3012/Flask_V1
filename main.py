@@ -63,10 +63,9 @@ def preprocess_html(html_content, row, task_id=-1):
 @app.route("/")
 def hello_world():
     # direct to /study while keeping the request args
-    if request.args:
-        return redirect(url_for('study', **request.args))
-    # return redirect(url_for('study'))   
-    # return "<p>Hello, World!</p>"
+    # if request.args:
+    #     return redirect(url_for('study', **request.args))
+    return "Hello, World! The server is running."
 # === Main Routes ===
 
 @app.route('/submit', methods=[ 'POST'])
@@ -238,10 +237,13 @@ def study():
     # Process the template with CSV data
     html_content = preprocess_html(template, df.iloc[df_row_index], task_id)
 
-    # Add hidden form fields
-    html_content += f'<input type="hidden" id="prolific_pid" value="{prolific_pid}">'
-    html_content += f'<input type="hidden" id="session_id" value="{session_id}">'
-    html_content += f'<input type="hidden" id="task_id" value="{task_id}">'
+    # Add hidden form fields for task info but add it before the closing </form> tag
+    # html_content += f'<input type="hidden" id="prolific_pid" value="{prolific_pid}">'
+    # html_content += f'<input type="hidden" id="session_id" value="{session_id}">'
+    # html_content += f'<input type="hidden" id="task_id" value="{task_id}">'
+    html_content = html_content.replace("prolific_pid_value", prolific_pid)
+    html_content = html_content.replace("session_id_value", session_id)
+    html_content = html_content.replace("task_id_value", str(task_id))
 
     return render_template_string(
         html_content, PROLIFIC_COMPLETION_URL=PROLIFIC_COMPLETION_URL
