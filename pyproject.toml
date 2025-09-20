@@ -13,7 +13,7 @@ dependencies = [
     "python-dotenv", "httpx", "tzdata", "tzlocal", "Werkzeug", "zipp",
     "numpy", "packaging", "pandas", "python-dateutil", "pytz", "six",
     "Flask", "gunicorn", "importlib_metadata", "itsdangerous", "Jinja2",
-    "MarkupSafe", "APScheduler", "blinker", "click", "psycopg2"
+    "MarkupSafe", "APScheduler", "blinker", "click", "psycopg2-binary"
 ]
 
 
