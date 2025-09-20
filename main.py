@@ -20,8 +20,8 @@ import os
 import DataManager as dm
 
 MAX_TIME = 3600  # seconds
-PROLIFIC_COMPLETION_URL='https://www.google.com'
-# PROLIFIC_COMPLETION_URL = 'https://app.prolific.com/submissions/complete?cc=CZ3UY0IC'
+# PROLIFIC_COMPLETION_URL='https://www.google.com'
+PROLIFIC_COMPLETION_URL = 'https://app.prolific.com/submissions/complete?cc=CZ3UY0IC'
 ##https://app.prolific.com/submissions/complete?cc=CZ3UY0IC
 # Load the data from CSV
 df = pd.read_csv("pivoted_output2.csv")
