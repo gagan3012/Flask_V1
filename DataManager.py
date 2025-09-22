@@ -2,7 +2,11 @@ import sqlite3
 import psycopg2
 import os
 from datetime import datetime
+from uuid import uuid4
 
+from dotenv import load_dotenv
+
+load_dotenv()
 # TODO: Race conditions should be investigated - handled by using transactions and locking
 # TODO: What happens when a worker returns results that have not been allocated to them?
 
@@ -200,6 +204,64 @@ def get_specific_result(result_id):
         print(f"An error occurred: {e}")
         return None
 
+def store_consent(prolific_id, session_id, consent_given=True, ip_address=None):
+    """
+    Store consent information in the consent table.
+    """
+    try:
+        with create_connection() as conn:
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(conn, "server_version") else "?"
+            is_postgres = hasattr(conn, "server_version")
+
+            consent_id = str(uuid4())
+
+            if is_postgres:
+                cursor.execute(
+                    f"INSERT INTO consent (id, prolific_id, session_id, consent_given, consent_timestamp, ip_address) VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, CURRENT_TIMESTAMP, {placeholder})",
+                    (consent_id, prolific_id, session_id, consent_given, ip_address),
+                )
+            else:
+                cursor.execute(
+                    f"INSERT INTO consent (id, prolific_id, session_id, consent_given, consent_timestamp, ip_address) VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})",
+                    (
+                        consent_id,
+                        prolific_id,
+                        session_id,
+                        consent_given,
+                        datetime.utcnow().isoformat(),
+                        ip_address,
+                    ),
+                )
+
+            conn.commit()
+            return consent_id
+
+    except (sqlite3.Error, psycopg2.Error) as e:
+        print(f"An error occurred storing consent: {e}")
+        return None
+
+
+def check_consent(prolific_id, session_id):
+    """
+    Check if consent has already been given for this participant/session.
+    """
+    try:
+        with create_connection() as conn:
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(conn, "server_version") else "?"
+
+            cursor.execute(
+                f"SELECT consent_given FROM consent WHERE prolific_id={placeholder} AND session_id={placeholder} ORDER BY consent_timestamp DESC LIMIT 1",
+                (prolific_id, session_id),
+            )
+            result = cursor.fetchone()
+
+            return result[0] if result else False
+
+    except (sqlite3.Error, psycopg2.Error) as e:
+        print(f"An error occurred checking consent: {e}")
+        return False
 
 #expire_tasks()
 #complete_task('9f28d264-434b-433d-abcf-4124bb97c019', '{"test": 1}', '1234')

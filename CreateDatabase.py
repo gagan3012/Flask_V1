@@ -91,6 +91,7 @@
 #   "sqlalchemy",
 #   "psycopg2-binary",
 #   "uuid",
+#   "python-dotenv",
 # ]
 # ///
 
@@ -104,6 +105,9 @@ import psycopg2
 import os
 import time
 from uuid import uuid4
+
+from dotenv import load_dotenv
+load_dotenv()
 
 
 def create_connection(db_file="database.db"):
@@ -148,15 +152,11 @@ def create_connection(db_file="database.db"):
 
 # Creates the DB file if it doesn't exist, and creates the tables if they don't exist.
 def initDatabase():
-    # Connect to database (PostgreSQL or SQLite)
     conn = create_connection()
     cursor = conn.cursor()
-
-    # Check if we're using PostgreSQL or SQLite
     is_postgres = hasattr(conn, "server_version")
 
     if is_postgres:
-        # PostgreSQL schema
         create_tasks_table = """
 CREATE TABLE IF NOT EXISTS tasks (
     id VARCHAR(255) PRIMARY KEY,
@@ -174,9 +174,19 @@ CREATE TABLE IF NOT EXISTS results (
     prolific_id VARCHAR(255)
 );
 """
+        # Add consent table for PostgreSQL
+        create_consent_table = """
+CREATE TABLE IF NOT EXISTS consent (
+    id VARCHAR(255) PRIMARY KEY,
+    prolific_id VARCHAR(255),
+    session_id VARCHAR(255),
+    consent_given BOOLEAN,
+    consent_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_address VARCHAR(45)
+);
+"""
         print("Creating PostgreSQL tables...")
     else:
-        # SQLite schema
         create_tasks_table = """
 CREATE TABLE IF NOT EXISTS tasks (
     id TEXT PRIMARY KEY,
@@ -194,13 +204,23 @@ CREATE TABLE IF NOT EXISTS results (
     prolific_id TEXT
 );
 """
+        # Add consent table for SQLite
+        create_consent_table = """
+CREATE TABLE IF NOT EXISTS consent (
+    id TEXT PRIMARY KEY,
+    prolific_id TEXT,
+    session_id TEXT,
+    consent_given BOOLEAN,
+    consent_timestamp TEXT,
+    ip_address TEXT
+);
+"""
         print("Creating SQLite tables...")
 
-    # Execute the SQL commands to create tables
     cursor.execute(create_tasks_table)
     cursor.execute(create_results_table)
+    cursor.execute(create_consent_table)
 
-    # Commit the changes and close the connection
     conn.commit()
     conn.close()
     print("Database tables created successfully!")

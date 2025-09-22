@@ -5,6 +5,8 @@
 #   "apscheduler",
 #   "sqlalchemy",
 #   "psycopg2-binary",
+#   "uuid",
+#   "python-dotenv",
 # ]
 # ///
 
@@ -103,6 +105,34 @@ def row(row_id):
     processed_html = preprocess_html(template, df.iloc[row_id], task_id=row_id)
     return render_template_string(processed_html)
 
+@app.route("/store-consent", methods=["POST"])
+def store_consent():
+    """Store user consent information"""
+    try:
+        data = request.json
+        prolific_pid = data.get("prolific_pid")
+        session_id = data.get("session_id")
+        consent_given = data.get("consent_given", True)
+
+        # Get IP address
+        ip_address = request.environ.get(
+            "HTTP_X_FORWARDED_FOR", request.environ.get("REMOTE_ADDR", "")
+        )
+
+        # Store consent in database
+        consent_id = dm.store_consent(
+            prolific_pid, session_id, consent_given, ip_address
+        )
+
+        if consent_id:
+            return {"result": "OK", "consent_id": consent_id}, 200
+        else:
+            return {"result": "Error storing consent"}, 500
+
+    except Exception as e:
+        print(f"Error storing consent: {e}")
+        return {"result": "Error storing consent"}, 500
+
 
 # @app.route('/study/')
 # def study():
@@ -138,6 +168,8 @@ def study():
 
     if prolific_pid is None or session_id is None:
         return "PROLIFIC_PID and SESSION_ID are required parameters.", 400
+    
+    consent_given = dm.check_consent(prolific_pid, session_id)
 
     task_id, task_number = dm.allocate_task(prolific_pid, session_id)
 
@@ -157,6 +189,14 @@ def study():
     # Read the template
     with open("templates/eval_template_v2.html", "r", encoding="utf-8") as f:
         template = f.read()
+
+    if consent_given:
+        template = template.replace(
+            'id="consent-card"', 'id="consent-card" style="display:none;"'
+        )
+        template = template.replace(
+            'id="intro-card" style="display:none;"', 'id="intro-card"'
+        )
 
     # Generate all 32 question cards dynamically
     question_cards_html = ""
