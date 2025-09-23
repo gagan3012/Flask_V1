@@ -8,12 +8,13 @@
     <!-- Bootstrap, jQuery, and Swiper CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"></script>
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
-
+    
     <style>
         body {
             background-color: #f8f9fa;
@@ -193,21 +194,30 @@
     </div>
 
     <div class="container py-4">
-        <!-- Consent Form Card -->
+                <!-- Consent Form Card -->
         <div class="card intro-card animate-in" id="consent-card">
             <div class="card-header">
-                <h3>ReproHum – Experiment 0021</h3>
+                <h3>ReproHum - Experiment 0021</h3>
                 <h5>Consent form for participation in the research project</h5>
             </div>
             <div class="card-body">
+                <!-- Add the information sheet link here -->
+                <div class="alert alert-info mb-4">
+                    <h6 class="mb-2"><strong>Before proceeding, please review the participant information:</strong></h6>
+                    <a href="/participant-information-sheet" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-file-pdf" aria-hidden="true"></i> View Participant Information Sheet (PDF)
+                    </a>
+                    <small class="d-block mt-2 text-muted">This will open in a new tab for your reference.</small>
+                </div>
+                
                 <p><strong>Please read the statements below and tick the final box to confirm you have read and understood the statements and upon doing so agree to participate in the project.</strong></p>
                 
                 <div class="consent-statement">
-                    <p class="consent-text">I confirm that the research project ReproHum – Experiment 0021 has been explained to me. I have had the opportunity to ask questions about the project and have had these answered satisfactorily.</p>
+                    <p class="consent-text">I confirm that the research project ReproHum - Experiment 0021 has been explained to me. I have had the opportunity to ask questions about the project and have had these answered satisfactorily.</p>
                 </div>
                 
                 <div class="consent-statement">
-                    <p class="consent-text">I consent to the material I contribute being used to generate insights for the research project ReproHum – Experiment 0021.</p>
+                    <p class="consent-text">I consent to the material I contribute being used to generate insights for the research project ReproHum - Experiment 0021.</p>
                 </div>
                 
                 <div class="consent-statement">
@@ -225,7 +235,7 @@
                 <div class="form-check mt-4">
                     <input class="form-check-input consent-checkbox" type="checkbox" id="consent-checkbox" required>
                     <label class="form-check-label" for="consent-checkbox">
-                        <strong>I confirm that I have read and understood the above statements</strong>
+                        <strong>I confirm that I have read and understood the above statements and the participant information sheet</strong>
                     </label>
                 </div>
                 
@@ -233,6 +243,7 @@
                     <button class="btn btn-lg btn-primary" id="consent-continue-button" disabled>Continue</button>
                 </div>
             </div>
+        </div>
         </div>
         
         <!-- Introduction Card -->

@@ -14,7 +14,7 @@
 # Webapp for hosting Prolific surveys for the Edinburgh Napier University lab (reprohum project)
 import json
 from datetime import datetime
-from flask import Flask, render_template, request, render_template_string, redirect, url_for
+from flask import Flask, render_template, request, render_template_string, redirect, url_for, send_file
 import pandas as pd
 import ast
 import os
@@ -190,13 +190,13 @@ def study():
     with open("templates/eval_template_v2.html", "r", encoding="utf-8") as f:
         template = f.read()
 
-    if consent_given:
-        template = template.replace(
-            'id="consent-card"', 'id="consent-card" style="display:none;"'
-        )
-        template = template.replace(
-            'id="intro-card" style="display:none;"', 'id="intro-card"'
-        )
+    # if consent_given:
+    #     template = template.replace(
+    #         'id="consent-card"', 'id="consent-card" style="display:none;"'
+    #     )
+    #     template = template.replace(
+    #         'id="intro-card" style="display:none;"', 'id="intro-card"'
+    #     )
 
     # Generate all 32 question cards dynamically
     question_cards_html = ""
@@ -308,6 +308,21 @@ def check_abandonment():
     print("Checking for abandoned tasks...")
     dm.expire_tasks(MAX_TIME)
     return dm.get_all_tasks(), 200
+
+
+@app.route("/participant-information-sheet")
+def participant_information_sheet():
+    try:
+        pdf_path = os.path.join(
+            app.root_path, "PSEEB_Annex_C_Participant_Information_Sheet (UTN).pdf"
+        )
+        return send_file(
+            pdf_path,
+            as_attachment=False,
+            download_name="Participant_Information_Sheet.pdf",
+        )
+    except FileNotFoundError:
+        return "Participant information sheet not found", 404
 
 
 # === Scheduler: run check_abandonment every hour ===
