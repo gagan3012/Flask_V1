@@ -171,7 +171,25 @@ def study():
     
     consent_given = dm.check_consent(prolific_pid, session_id)
 
-    task_id, task_number = dm.allocate_task(prolific_pid, session_id)
+    # task_id, task_number = dm.allocate_task(prolific_pid, session_id)
+
+    task_result = dm.allocate_task(prolific_pid, session_id)
+
+
+    if task_result is None or (
+        isinstance(task_result, tuple) and task_result[0] is None
+    ):
+        return "No tasks available at this time. Please try again later.", 503
+
+    # Handle error result
+    if (
+        isinstance(task_result, tuple)
+        and isinstance(task_result[0], str)
+        and "Error" in task_result[0]
+    ):
+        return f"Error allocating task: {task_result[0]}", 500
+
+    task_id, task_number = task_result
 
     if (
         task_id

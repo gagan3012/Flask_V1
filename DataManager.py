@@ -3,7 +3,7 @@ import psycopg2
 import os
 from datetime import datetime
 from uuid import uuid4
-
+from CreateDatabase import COMPLETIONS_PER_TASK
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -50,9 +50,8 @@ def allocate_task(prolific_id, session_id):
     try:
         with create_connection() as conn:
             cursor = conn.cursor()
-
-            # Use %s for PostgreSQL, ? for SQLite
             placeholder = "%s" if hasattr(conn, "server_version") else "?"
+            is_postgres = hasattr(conn, "server_version")
 
             # Check if the participant has an incomplete allocated task
             cursor.execute(
@@ -63,31 +62,80 @@ def allocate_task(prolific_id, session_id):
             if allocated_tasks:
                 return allocated_tasks[0]
 
-            # Find a task that hasn't been assigned to this participant and has been assigned less than three times
+            # Find task_numbers not completed by this participant
             cursor.execute(
                 f"""
-                SELECT id, task_number FROM tasks 
-                WHERE status='waiting' AND task_number NOT IN (
+                SELECT DISTINCT task_number FROM tasks 
+                WHERE task_number NOT IN (
                     SELECT task_number FROM tasks WHERE prolific_id={placeholder} AND status='completed'
                 )
-            """,
+                ORDER BY task_number
+                """,
                 (prolific_id,),
             )
-            waiting_tasks = cursor.fetchall()
-            for task_id, task_number in waiting_tasks:
+            available_task_numbers = [row[0] for row in cursor.fetchall()]
+
+            # Try each task_number
+            for task_number in available_task_numbers:
+                # Count completed OR allocated for this task_number
                 cursor.execute(
-                    f"SELECT COUNT(*) FROM tasks WHERE task_number={placeholder} AND status='allocated'",
+                    f"SELECT COUNT(*) FROM tasks WHERE task_number={placeholder} AND status IN ('completed', 'allocated')",
                     (task_number,),
                 )
-                num_allocated = cursor.fetchone()[0]
-                if num_allocated < 3:
-                    cursor.execute(
-                        f"UPDATE tasks SET status='allocated', prolific_id={placeholder}, time_allocated={placeholder}, session_id={placeholder} WHERE id={placeholder}",
-                        (prolific_id, datetime.utcnow(), session_id, task_id),
-                    )
-                    conn.commit()
-                    return task_id, task_number
-            return None
+                num_in_progress = cursor.fetchone()[0]
+
+                if num_in_progress < 10:  # COMPLETIONS_PER_TASK = 10
+                    # Lock a specific waiting task row
+                    if is_postgres:
+                        cursor.execute(
+                            f"""
+                            SELECT id FROM tasks 
+                            WHERE task_number={placeholder} 
+                            AND status='waiting' 
+                            AND prolific_id IS NULL
+                            LIMIT 1
+                            FOR UPDATE SKIP LOCKED
+                            """,
+                            (task_number,),
+                        )
+                    else:
+                        cursor.execute(
+                            f"""
+                            SELECT id FROM tasks 
+                            WHERE task_number={placeholder} 
+                            AND status='waiting' 
+                            AND prolific_id IS NULL
+                            LIMIT 1
+                            """,
+                            (task_number,),
+                        )
+
+                    waiting_task = cursor.fetchone()
+
+                    if waiting_task:
+                        task_id = waiting_task[0]
+                        # Update with WHERE conditions to ensure atomicity
+                        cursor.execute(
+                            f"""
+                            UPDATE tasks 
+                            SET status='allocated', 
+                                prolific_id={placeholder}, 
+                                time_allocated={placeholder}, 
+                                session_id={placeholder} 
+                            WHERE id={placeholder} 
+                            AND status='waiting' 
+                            AND prolific_id IS NULL
+                            """,
+                            (prolific_id, datetime.utcnow(), session_id, task_id),
+                        )
+
+                        # Verify the update succeeded (prevents race conditions)
+                        if cursor.rowcount > 0:
+                            conn.commit()
+                            return task_id, task_number
+                        # If rowcount is 0, another process took it, continue to next
+
+            return None, None
 
     except (sqlite3.Error, psycopg2.Error) as e:
         return f"Database Error - {e}", -1
