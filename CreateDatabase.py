@@ -92,13 +92,18 @@
 #   "psycopg2-binary",
 #   "uuid",
 #   "python-dotenv",
+#   "pandas"
 # ]
 # ///
 
 COMPLETIONS_PER_TASK = (
-    10  # Number of times each task should be completed by different participants
+    20  # Number of times each task should be completed by different participants
 )
-NUMBER_OF_TASKS = 60  # Number of tasks to create in the database
+
+# number of tasks come from the len of the dataframe 
+import pandas as pd
+df = pd.read_csv('pivoted_output2.csv')  # Assuming tasks are listed in a CSV file
+NUMBER_OF_TASKS = len(df)  # Number of tasks to create in the database
 
 import sqlite3
 import psycopg2
