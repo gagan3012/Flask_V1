@@ -111,7 +111,7 @@ DB_PORT=5432
 DB_NAME=postgres
 ```
 
-If these are not set, the system defaults to SQLite (`database.db`).
+If these are not set, the system defaults to SQLite (`database.db`). To connect to PostgreSQL, ensure these variables are correctly set. Please contact me for the Supabase credentials if needed.
 
 ### Step 5: Test Locally
 
