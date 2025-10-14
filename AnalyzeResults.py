@@ -12,8 +12,8 @@ This allows you to see how multiple humans have rated each task.
 #   "python-dotenv",
 #   "pandas",
 #   "openpyxl",
-#   "scipy",
-#   "statsmodels",
+#   "numpy",
+#   "statsmodels"
 # ]
 # ///
 
@@ -221,15 +221,40 @@ def export_to_csv(output_file="results_analysis.csv"):
                         "english_proficiency", ""
                     )
 
-                # Extract all rating fields
-                for key, value in ratings.items():
-                    if key not in [
-                        "task_id",
-                        "prolific_pid",
-                        "session_id",
-                        "demographics",
-                    ]:
+                # FIXED: Extract responses dict and flatten it
+                if "responses" in ratings and isinstance(ratings["responses"], dict):
+                    # The ratings are nested inside a 'responses' key
+                    for key, value in ratings["responses"].items():
                         row[key] = value
+                elif "responses" in ratings and isinstance(ratings["responses"], str):
+                    # If responses is a string, parse it again
+                    responses_dict = safe_json_parse(
+                        ratings["responses"], result["task_id"]
+                    )
+                    if responses_dict:
+                        for key, value in responses_dict.items():
+                            row[key] = value
+                else:
+                    # Try to extract all rating fields directly
+                    for key, value in ratings.items():
+                        if key not in [
+                            "task_id",
+                            "prolific_pid",
+                            "session_id",
+                            "demographics",
+                            "consent_given",
+                        ]:
+                            # Handle nested dictionaries
+                            if isinstance(value, dict):
+                                for nested_key, nested_value in value.items():
+                                    row[f"{key}_{nested_key}"] = nested_value
+                            else:
+                                row[key] = value
+
+                # Also extract consent_given and responses at top level
+                if "consent_given" in ratings:
+                    row["consent_given"] = ratings.get("consent_given", "")
+
             else:
                 parse_errors += 1
                 row["parse_error"] = True
@@ -238,6 +263,24 @@ def export_to_csv(output_file="results_analysis.csv"):
 
     # Create DataFrame and export
     df = pd.DataFrame(export_data)
+
+    # Debug: Check what columns we actually have
+    print(f"\n🔍 DEBUG: CSV Columns Created:")
+    print(f"   Total columns: {len(df.columns)}")
+    grammar_cols = [
+        col for col in df.columns if "grammar" in col.lower() or col.startswith("item")
+    ]
+    if grammar_cols:
+        print(
+            f"   ✅ Grammar columns found ({len(grammar_cols)}): {grammar_cols[:5]}..."
+        )
+    else:
+        print(f"   ⚠️  No grammar columns found!")
+        print(f"   Available columns: {list(df.columns)}")
+        print(f"\n   Sample first row:")
+        if len(df) > 0:
+            print(f"   {df.iloc[0].to_dict()}")
+
     df.to_csv(output_file, index=False)
     print(f"\n✅ Results exported to {output_file}")
     print(f"   Total rows: {len(df)}")
@@ -451,34 +494,109 @@ def analyze_inter_annotator_agreement(csv_file="aggregated_results.csv"):
 
     agreement_data = []
 
-    for idx, row in agg_df.iterrows():
-        task_num = row["task_number"]
+    # Check if we have the responses_all column (new format)
+    if "responses_all" in agg_df.columns:
+        print("   ℹ️  Found 'responses_all' column, parsing responses...")
 
-        # Process each grammar item
-        for col in agg_df.columns:
-            if col.endswith("_all") and col.startswith("grammar-item"):
-                item_name = col.replace("_all", "")
+        for idx, row in agg_df.iterrows():
+            task_num = row["task_number"]
 
-                if pd.notna(row[col]):
-                    # Parse ratings
-                    ratings = [float(x) for x in str(row[col]).split(", ") if x.strip()]
+            if pd.notna(row["responses_all"]):
+                # Parse the responses_all column which contains comma-separated dicts
+                try:
+                    import ast
 
-                    if ratings:
-                        agreement_data.append(
-                            {
-                                "task_number": task_num,
-                                "item": item_name,
-                                "mean": np.mean(ratings),
-                                "std": np.std(ratings, ddof=1),
-                                "cv": np.std(ratings, ddof=1) / np.mean(ratings)
-                                if np.mean(ratings) > 0
-                                else 0,
-                                "min": min(ratings),
-                                "max": max(ratings),
-                                "range": max(ratings) - min(ratings),
-                                "num_ratings": len(ratings),
-                            }
-                        )
+                    # Split by dictionary boundaries
+                    responses_str = str(row["responses_all"])
+
+                    # Extract individual response dictionaries
+                    responses_list = []
+                    current_dict = ""
+                    brace_count = 0
+
+                    for char in responses_str:
+                        if char == "{":
+                            brace_count += 1
+                        elif char == "}":
+                            brace_count -= 1
+
+                        current_dict += char
+
+                        if brace_count == 0 and current_dict.strip():
+                            try:
+                                parsed = ast.literal_eval(
+                                    current_dict.strip().rstrip(",")
+                                )
+                                responses_list.append(parsed)
+                                current_dict = ""
+                            except:
+                                current_dict = ""
+
+                    # Now we have a list of response dictionaries
+                    # Collect ratings for each grammar item
+                    all_item_ratings = {}
+
+                    for response_dict in responses_list:
+                        for key, value in response_dict.items():
+                            if key.startswith("grammar-item"):
+                                if key not in all_item_ratings:
+                                    all_item_ratings[key] = []
+                                all_item_ratings[key].append(float(value))
+
+                    # Calculate agreement statistics for each item
+                    for item_name, ratings in all_item_ratings.items():
+                        if len(ratings) > 1:
+                            agreement_data.append(
+                                {
+                                    "task_number": task_num,
+                                    "item": item_name,
+                                    "mean": np.mean(ratings),
+                                    "std": np.std(ratings, ddof=1),
+                                    "cv": np.std(ratings, ddof=1) / np.mean(ratings)
+                                    if np.mean(ratings) > 0
+                                    else 0,
+                                    "min": min(ratings),
+                                    "max": max(ratings),
+                                    "range": max(ratings) - min(ratings),
+                                    "num_ratings": len(ratings),
+                                }
+                            )
+
+                except Exception as e:
+                    print(f"   ⚠️  Error parsing task {task_num}: {e}")
+
+    else:
+        # Old format: individual grammar-item columns with _all suffix
+        for idx, row in agg_df.iterrows():
+            task_num = row["task_number"]
+
+            # Process each grammar item
+            for col in agg_df.columns:
+                if col.endswith("_all") and col.startswith("grammar-item"):
+                    item_name = col.replace("_all", "")
+
+                    if pd.notna(row[col]):
+                        # Parse ratings
+                        ratings = [
+                            float(x) for x in str(row[col]).split(", ") if x.strip()
+                        ]
+
+                        if ratings:
+                            agreement_data.append(
+                                {
+                                    "task_number": task_num,
+                                    "item": item_name,
+                                    "mean": np.mean(ratings),
+                                    "std": np.std(ratings, ddof=1),
+                                    "cv": np.std(ratings, ddof=1) / np.mean(ratings)
+                                    if np.mean(ratings) > 0
+                                    else 0,
+                                    "min": min(ratings),
+                                    "max": max(ratings),
+                                    "range": max(ratings) - min(ratings),
+                                    "num_ratings": len(ratings),
+                                }
+                            )
 
     if not agreement_data:
         print("❌ No rating data found!")
@@ -490,6 +608,10 @@ def analyze_inter_annotator_agreement(csv_file="aggregated_results.csv"):
     print(f"\nAgreement Summary:")
     print(f"   Average Std Dev: {agreement_df['std'].mean():.3f}")
     print(f"   Average CV: {agreement_df['cv'].mean():.3f}")
+
+    # Show sample
+    print(f"\n   Sample data (first 5 rows):")
+    print(agreement_df.head().to_string(index=False))
 
     # Export to CSV
     output_file = "inter_annotator_agreement.csv"
@@ -761,46 +883,134 @@ def calculate_fleiss_kappa(csv_file="aggregated_results.csv", max_items=None):
 
     kappa_results = []
 
-    # Get all grammar item columns
-    grammar_cols = [
-        col
-        for col in agg_df.columns
-        if col.startswith("grammar-item") and col.endswith("_all")
-    ]
+    # Check if we have the responses_all column (new format)
+    if "responses_all" in agg_df.columns:
+        print("   ℹ️  Found 'responses_all' column, parsing responses...")
 
-    if max_items:
-        grammar_cols = grammar_cols[:max_items]
+        import ast
 
-    for col in grammar_cols:
-        item_name = col.replace("_all", "")
+        # Collect all ratings per grammar item across all tasks
+        all_item_ratings = {}
 
-        # Convert ratings to matrix format
-        ratings_matrix = []
-        valid_tasks = 0
+        for idx, row in agg_df.iterrows():
+            if pd.notna(row["responses_all"]):
+                try:
+                    responses_str = str(row["responses_all"])
 
-        for ratings_str in agg_df[col].dropna():
-            try:
-                ratings = [int(float(x)) for x in str(ratings_str).split(", ")]
-                # Count occurrences of each rating (1-7)
-                counts = [ratings.count(i) for i in range(1, 8)]
-                ratings_matrix.append(counts)
-                valid_tasks += 1
-            except (ValueError, AttributeError):
-                continue
+                    # Extract individual response dictionaries
+                    responses_list = []
+                    current_dict = ""
+                    brace_count = 0
 
-        if len(ratings_matrix) > 0:
-            try:
-                kappa = fleiss_kappa(ratings_matrix, method="fleiss")
-                kappa_results.append(
-                    {
-                        "item": item_name,
-                        "fleiss_kappa": round(kappa, 4),
-                        "num_tasks": valid_tasks,
-                        "interpretation": interpret_kappa(kappa),
-                    }
-                )
-            except Exception as e:
-                print(f"   ⚠️  Error calculating kappa for {item_name}: {e}")
+                    for char in responses_str:
+                        if char == "{":
+                            brace_count += 1
+                        elif char == "}":
+                            brace_count -= 1
+
+                        current_dict += char
+
+                        if brace_count == 0 and current_dict.strip():
+                            try:
+                                parsed = ast.literal_eval(
+                                    current_dict.strip().rstrip(",")
+                                )
+                                responses_list.append(parsed)
+                                current_dict = ""
+                            except:
+                                current_dict = ""
+
+                    # Organize by grammar item
+                    for response_dict in responses_list:
+                        for key, value in response_dict.items():
+                            if key.startswith("grammar-item"):
+                                if key not in all_item_ratings:
+                                    all_item_ratings[key] = []
+                                all_item_ratings[key].append(int(float(value)))
+
+                except Exception as e:
+                    print(f"   ⚠️  Error parsing row {idx}: {e}")
+
+        # Calculate Fleiss' Kappa for each item
+        items_to_process = list(all_item_ratings.keys())
+        if max_items:
+            items_to_process = items_to_process[:max_items]
+
+        for item_name in items_to_process:
+            ratings = all_item_ratings[item_name]
+
+            # Group ratings by task (assume every N ratings is one task)
+            num_tasks = len(agg_df)
+            ratings_per_task = len(ratings) // num_tasks if num_tasks > 0 else 0
+
+            if ratings_per_task > 1:
+                # Create matrix: each row is a task, columns are counts of ratings 1-7
+                ratings_matrix = []
+
+                for task_idx in range(num_tasks):
+                    start_idx = task_idx * ratings_per_task
+                    end_idx = start_idx + ratings_per_task
+                    task_ratings = ratings[start_idx:end_idx]
+
+                    # Count occurrences of each rating (1-7)
+                    counts = [task_ratings.count(i) for i in range(1, 8)]
+                    ratings_matrix.append(counts)
+
+                try:
+                    kappa = fleiss_kappa(ratings_matrix, method="fleiss")
+                    kappa_results.append(
+                        {
+                            "item": item_name,
+                            "fleiss_kappa": round(kappa, 4),
+                            "num_tasks": num_tasks,
+                            "ratings_per_task": ratings_per_task,
+                            "interpretation": interpret_kappa(kappa),
+                        }
+                    )
+                except Exception as e:
+                    print(f"   ⚠️  Error calculating kappa for {item_name}: {e}")
+
+    else:
+        # Old format with individual columns
+        grammar_cols = [
+            col
+            for col in agg_df.columns
+            if col.startswith("grammar-item") and col.endswith("_all")
+        ]
+
+        if max_items:
+            grammar_cols = grammar_cols[:max_items]
+
+        for col in grammar_cols:
+            item_name = col.replace("_all", "")
+
+            # Convert ratings to matrix format
+            ratings_matrix = []
+            valid_tasks = 0
+
+            for ratings_str in agg_df[col].dropna():
+                try:
+                    ratings = [int(float(x)) for x in str(ratings_str).split(", ")]
+                    # Count occurrences of each rating (1-7)
+                    counts = [ratings.count(i) for i in range(1, 8)]
+                    ratings_matrix.append(counts)
+                    valid_tasks += 1
+                except (ValueError, AttributeError):
+                    continue
+
+            if len(ratings_matrix) > 0:
+                try:
+                    kappa = fleiss_kappa(ratings_matrix, method="fleiss")
+                    kappa_results.append(
+                        {
+                            "item": item_name,
+                            "fleiss_kappa": round(kappa, 4),
+                            "num_tasks": valid_tasks,
+                            "interpretation": interpret_kappa(kappa),
+                        }
+                    )
+                except Exception as e:
+                    print(f"   ⚠️  Error calculating kappa for {item_name}: {e}")
 
     if not kappa_results:
         print("❌ No valid kappa calculations!")
@@ -818,6 +1028,356 @@ def calculate_fleiss_kappa(csv_file="aggregated_results.csv", max_items=None):
 
     return kappa_df
 
+def calculate_overall_fleiss_kappa(csv_file="aggregated_results.csv"):
+    """
+    Calculate overall Fleiss' Kappa across all grammar items.
+    This provides a single measure of inter-annotator agreement for the entire study.
+
+    Args:
+        csv_file: Path to aggregated results CSV
+
+    Returns:
+        Dictionary with overall kappa value and interpretation
+    """
+    print("\n📊 Calculating Overall Fleiss' Kappa...")
+
+    try:
+        from statsmodels.stats.inter_rater import fleiss_kappa
+    except ImportError:
+        print("❌ statsmodels not installed. Install with: pip install statsmodels")
+        return None
+
+    # Load aggregated results
+    agg_df = pd.read_csv(csv_file)
+
+    # Check if we have the responses_all column
+    if "responses_all" not in agg_df.columns:
+        print("❌ 'responses_all' column not found!")
+        return None
+
+    print("   ℹ️  Parsing all responses...")
+
+    import ast
+
+    # Collect ALL ratings across all items and all tasks
+    all_ratings_by_task = []  # Each element will be a list of response dicts for one task
+
+    for idx, row in agg_df.iterrows():
+        if pd.notna(row["responses_all"]):
+            try:
+                responses_str = str(row["responses_all"])
+
+                # Extract individual response dictionaries
+                responses_list = []
+                current_dict = ""
+                brace_count = 0
+
+                for char in responses_str:
+                    if char == "{":
+                        brace_count += 1
+                    elif char == "}":
+                        brace_count -= 1
+
+                    current_dict += char
+
+                    if brace_count == 0 and current_dict.strip():
+                        try:
+                            parsed = ast.literal_eval(current_dict.strip().rstrip(","))
+                            responses_list.append(parsed)
+                            current_dict = ""
+                        except:
+                            current_dict = ""
+
+                # Store all responses for this task
+                if len(responses_list) > 0:
+                    all_ratings_by_task.append(responses_list)
+
+            except Exception as e:
+                print(f"   ⚠️  Error parsing row {idx}: {e}")
+
+    if not all_ratings_by_task:
+        print("❌ No valid rating data found!")
+        return None
+
+    # Determine the number of raters (should be consistent)
+    num_raters_per_task = [
+        len(task_responses) for task_responses in all_ratings_by_task
+    ]
+
+    print(
+        f"   ℹ️  Number of raters per task: min={min(num_raters_per_task)}, max={max(num_raters_per_task)}, mean={np.mean(num_raters_per_task):.1f}"
+    )
+
+    # Use only tasks with the most common number of raters to ensure consistency
+    from collections import Counter
+
+    rater_count_distribution = Counter(num_raters_per_task)
+    most_common_rater_count = rater_count_distribution.most_common(1)[0][0]
+
+    print(f"   ℹ️  Using tasks with {most_common_rater_count} raters (most common)")
+
+    # Filter to only tasks with consistent number of raters
+    filtered_ratings = [
+        task for task in all_ratings_by_task if len(task) == most_common_rater_count
+    ]
+
+    print(
+        f"   ℹ️  Filtered from {len(all_ratings_by_task)} to {len(filtered_ratings)} tasks"
+    )
+
+    # Now create a combined rating matrix
+    # We'll treat each (task, item) combination as a separate subject
+    print(f"   ℹ️  Processing {len(filtered_ratings)} tasks...")
+
+    all_rating_vectors = []
+
+    for task_responses in filtered_ratings:
+        # Get all grammar items from first response (to know which items exist)
+        if len(task_responses) > 0:
+            grammar_items = sorted(
+                [
+                    key
+                    for key in task_responses[0].keys()
+                    if key.startswith("grammar-item")
+                ]
+            )
+
+            # For each grammar item in this task, collect all raters' responses
+            for item_name in grammar_items:
+                item_ratings = []
+
+                # Collect ratings from all raters for this item
+                for response_dict in task_responses:
+                    if item_name in response_dict:
+                        try:
+                            rating = int(float(response_dict[item_name]))
+                            item_ratings.append(rating)
+                        except (ValueError, TypeError):
+                            print(
+                                f"   ⚠️  Invalid rating for {item_name}: {response_dict[item_name]}"
+                            )
+
+                # Only include if we have ratings from all raters
+                if len(item_ratings) == most_common_rater_count:
+                    # Create counts for ratings 1-7
+                    counts = [item_ratings.count(i) for i in range(1, 8)]
+                    all_rating_vectors.append(counts)
+
+    if len(all_rating_vectors) == 0:
+        print("❌ Insufficient rating data for Fleiss' Kappa calculation!")
+        return None
+
+    # Convert to numpy array
+    ratings_matrix = np.array(all_rating_vectors)
+
+    print(f"   ℹ️  Matrix shape: {ratings_matrix.shape}")
+    print(f"   ℹ️  Total subjects (task×item combinations): {len(all_rating_vectors)}")
+    print(f"   ℹ️  Raters per subject: {most_common_rater_count}")
+    print(f"   ℹ️  Rating categories: 7 (scale 1-7)")
+
+    # Verify the matrix sum is correct
+    expected_total = len(all_rating_vectors) * most_common_rater_count
+    actual_total = ratings_matrix.sum()
+    print(f"   ℹ️  Total ratings: expected={expected_total}, actual={actual_total}")
+
+    # Calculate overall Fleiss' Kappa
+    try:
+        overall_kappa = fleiss_kappa(ratings_matrix, method="fleiss")
+
+        result = {
+            "overall_kappa": round(overall_kappa, 4),
+            "interpretation": interpret_kappa(overall_kappa),
+            "num_subjects": len(all_rating_vectors),
+            "num_tasks": len(filtered_ratings),
+            "num_raters": most_common_rater_count,
+            "excluded_tasks": len(all_ratings_by_task) - len(filtered_ratings),
+        }
+
+        print(f"\n✅ Overall Fleiss' Kappa Calculated!")
+        print(f"   📊 Kappa: {result['overall_kappa']}")
+        print(f"   📝 Interpretation: {result['interpretation']}")
+        print(f"   🎯 Subjects analyzed: {result['num_subjects']}")
+        print(f"   📋 Tasks: {result['num_tasks']}")
+        print(f"   👥 Raters per subject: {result['num_raters']}")
+        if result["excluded_tasks"] > 0:
+            print(
+                f"   ⚠️  Excluded tasks (inconsistent rater count): {result['excluded_tasks']}"
+            )
+
+        # Save to file
+        output_file = "overall_fleiss_kappa.txt"
+        with open(output_file, "w") as f:
+            f.write("=" * 60 + "\n")
+            f.write("OVERALL FLEISS' KAPPA - INTER-RATER AGREEMENT\n")
+            f.write("=" * 60 + "\n\n")
+            f.write(f"Overall Kappa:       {result['overall_kappa']}\n")
+            f.write(f"Interpretation:      {result['interpretation']}\n")
+            f.write(f"Subjects Analyzed:   {result['num_subjects']}\n")
+            f.write(f"Tasks Included:      {result['num_tasks']}\n")
+            f.write(f"Tasks Excluded:      {result['excluded_tasks']}\n")
+            f.write(f"Raters per Subject:  {result['num_raters']}\n\n")
+            f.write(
+                "Note: Only tasks with consistent number of raters were included.\n\n"
+            )
+            f.write("Kappa Interpretation Scale:\n")
+            f.write("  < 0.00:  Poor\n")
+            f.write("  0.00-0.20: Slight\n")
+            f.write("  0.20-0.40: Fair\n")
+            f.write("  0.40-0.60: Moderate\n")
+            f.write("  0.60-0.80: Substantial\n")
+            f.write("  0.80-1.00: Almost Perfect\n")
+
+        print(f"\n💾 Saved to {output_file}")
+
+        return result
+
+    except Exception as e:
+        print(f"❌ Error calculating overall Fleiss' Kappa: {e}")
+        import traceback
+
+        traceback.print_exc()
+
+        # Debug info
+        print(f"\n🔍 Debug Info:")
+        print(f"   Matrix shape: {ratings_matrix.shape}")
+        print(f"   Matrix sum per row (first 5): {ratings_matrix.sum(axis=1)[:5]}")
+        print(f"   Expected sum per row: {most_common_rater_count}")
+
+        return None
+
+def calculate_kappa_by_item_group(csv_file="aggregated_results.csv", items_per_group=8):
+    """
+    Calculate Fleiss' Kappa for groups of items (e.g., every 8 items).
+    Useful for understanding agreement patterns across different sections.
+
+    Args:
+        csv_file: Path to aggregated results CSV
+        items_per_group: Number of items to group together
+
+    Returns:
+        DataFrame with kappa per group
+    """
+    print(
+        f"\n📊 Calculating Fleiss' Kappa by Item Groups ({items_per_group} items/group)..."
+    )
+
+    try:
+        from statsmodels.stats.inter_rater import fleiss_kappa
+    except ImportError:
+        print("❌ statsmodels not installed. Install with: pip install statsmodels")
+        return None
+
+    agg_df = pd.read_csv(csv_file)
+
+    if "responses_all" not in agg_df.columns:
+        print("❌ 'responses_all' column not found!")
+        return None
+
+    import ast
+
+    # Collect ratings by item
+    all_item_ratings = {}
+
+    for idx, row in agg_df.iterrows():
+        if pd.notna(row["responses_all"]):
+            try:
+                responses_str = str(row["responses_all"])
+                responses_list = []
+                current_dict = ""
+                brace_count = 0
+
+                for char in responses_str:
+                    if char == "{":
+                        brace_count += 1
+                    elif char == "}":
+                        brace_count -= 1
+                    current_dict += char
+                    if brace_count == 0 and current_dict.strip():
+                        try:
+                            parsed = ast.literal_eval(current_dict.strip().rstrip(","))
+                            responses_list.append(parsed)
+                            current_dict = ""
+                        except:
+                            current_dict = ""
+
+                for response_dict in responses_list:
+                    for key, value in response_dict.items():
+                        if key.startswith("grammar-item"):
+                            if key not in all_item_ratings:
+                                all_item_ratings[key] = []
+                            all_item_ratings[key].append(int(float(value)))
+
+            except Exception as e:
+                print(f"   ⚠️  Error parsing row {idx}: {e}")
+
+    # Sort items and group them
+    sorted_items = sorted(all_item_ratings.keys())
+    num_groups = (len(sorted_items) + items_per_group - 1) // items_per_group
+
+    group_results = []
+
+    for group_idx in range(num_groups):
+        start_idx = group_idx * items_per_group
+        end_idx = min(start_idx + items_per_group, len(sorted_items))
+        group_items = sorted_items[start_idx:end_idx]
+
+        print(f"\n   Processing Group {group_idx + 1}: Items {start_idx + 1}-{end_idx}")
+
+        # Combine ratings from all items in this group
+        group_rating_vectors = []
+
+        # Assume same number of tasks for all items
+        num_tasks = len(agg_df)
+        ratings_per_task = (
+            len(all_item_ratings[group_items[0]]) // num_tasks if num_tasks > 0 else 0
+        )
+
+        for item_name in group_items:
+            ratings = all_item_ratings[item_name]
+
+            for task_idx in range(num_tasks):
+                start = task_idx * ratings_per_task
+                end = start + ratings_per_task
+                task_ratings = ratings[start:end]
+
+                if len(task_ratings) > 1:
+                    counts = [task_ratings.count(i) for i in range(1, 8)]
+                    group_rating_vectors.append(counts)
+
+        if len(group_rating_vectors) > 0:
+            try:
+                ratings_matrix = np.array(group_rating_vectors)
+                kappa = fleiss_kappa(ratings_matrix, method="fleiss")
+
+                group_results.append(
+                    {
+                        "group": f"Group {group_idx + 1}",
+                        "items": f"{sorted_items[start_idx]}-{sorted_items[end_idx - 1]}",
+                        "num_items": len(group_items),
+                        "fleiss_kappa": round(kappa, 4),
+                        "interpretation": interpret_kappa(kappa),
+                        "num_subjects": len(group_rating_vectors),
+                    }
+                )
+
+            except Exception as e:
+                print(f"   ⚠️  Error calculating kappa for group {group_idx + 1}: {e}")
+
+    if not group_results:
+        print("❌ No valid group kappa calculations!")
+        return None
+
+    group_df = pd.DataFrame(group_results)
+
+    print(f"\n✅ Calculated Fleiss' Kappa for {len(group_df)} groups")
+    print(f"\n{group_df.to_string(index=False)}")
+
+    # Export to CSV
+    output_file = "kappa_by_item_group.csv"
+    group_df.to_csv(output_file, index=False)
+    print(f"\n💾 Saved to {output_file}")
+
+    return group_df
 
 def interpret_kappa(kappa):
     """Interpret Fleiss' Kappa value"""
@@ -913,36 +1473,43 @@ def run_all_analyses():
     print("=" * 80)
 
     # Step 1: Diagnose JSON issues
-    print("\n[1/9] Diagnosing JSON parsing issues...")
+    print("\n[1/10] Diagnosing JSON parsing issues...")
     diagnose_json_errors()
 
     # Step 2: Export base files
-    print("\n[2/9] Exporting detailed results...")
+    print("\n[2/10] Exporting detailed results...")
     export_to_csv("results_analysis.csv")
 
-    print("\n[3/9] Exporting aggregated results...")
+    print("\n[3/10] Exporting aggregated results...")
     export_aggregated_by_task("aggregated_results.csv")
 
     # Step 3: Run analyses
-    print("\n[4/9] Calculating average ratings...")
+    print("\n[4/10] Calculating average ratings...")
     calculate_average_ratings_per_task()
 
-    print("\n[5/9] Analyzing inter-annotator agreement...")
+    print("\n[5/10] Analyzing inter-annotator agreement...")
     analyze_inter_annotator_agreement()
 
-    print("\n[6/9] Identifying problematic tasks...")
+    print("\n[6/10] Identifying problematic tasks...")
     identify_problematic_tasks()
 
-    print("\n[7/9] Analyzing by demographics...")
+    print("\n[7/10] Analyzing by demographics...")
     analyze_by_demographics()
 
-    print("\n[8/9] Checking for quality issues...")
+    print("\n[8/10] Checking for quality issues...")
     check_incomplete_responses()
     check_suspicious_patterns()
 
     # Step 4: Calculate Fleiss' Kappa
-    print("\n[9/9] Calculating Fleiss' Kappa...")
+    print("\n[9/10] Calculating Fleiss' Kappa per item...")
     calculate_fleiss_kappa()
+
+    print("\n[10/10] Calculating Overall Fleiss' Kappa...")
+    calculate_overall_fleiss_kappa()
+
+    # Bonus: Calculate kappa by item groups
+    print("\n[Bonus] Calculating Fleiss' Kappa by item groups...")
+    calculate_kappa_by_item_group()
 
     # Step 5: Create comprehensive Excel report
     print("\n[Final] Creating comprehensive Excel report...")
@@ -961,6 +1528,8 @@ def run_all_analyses():
     print("  • incomplete_responses.csv")
     print("  • suspicious_responses.csv")
     print("  • fleiss_kappa_results.csv")
+    print("  • overall_fleiss_kappa.txt")
+    print("  • kappa_by_item_group.csv")
     print("  • comprehensive_results.xlsx")
 
 
