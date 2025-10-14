@@ -339,10 +339,19 @@
             </div>
             <div class="card-body text-center">
                 <h5>Thank you for completing the evaluation!</h5>
-                <p>You've answered <span id="answered-count">0</span> out of 32 questions.</p>
+                <p>You've answered <span id="answered-count">0</span> out of <span id="total-count">32</span> questions.</p>
                 <p id="missing-questions" class="text-danger"></p>
                 
-                <button class="btn btn-lg btn-primary" id="final-submit-button" onclick="submitTask()">Submit Evaluation</button>
+                <div class="mt-4">
+                    <button class="btn btn-lg btn-outline-secondary mr-3" onclick="returnToQuestions()">
+                        <i class="fas fa-arrow-left"></i> Back to Questions
+                    </button>
+                    <button class="btn btn-lg btn-primary" id="final-submit-button" onclick="submitTask()">Submit Evaluation</button>
+                </div>
+                
+                <p class="mt-3 text-muted">
+                    <small>You can go back to review or complete more questions before submitting.</small>
+                </p>
             </div>
         </div>
     </div>
@@ -471,6 +480,23 @@
         updateProgressBar(totalQuestions + 1, totalQuestions + 1);
     }
 
+    // Add function to return to questions
+    function returnToQuestions() {
+        document.getElementById('submit-card').style.display = 'none';
+        
+        // Find first unanswered question or go to last question
+        let targetQuestion = currentQuestionIndex;
+        for (let i = 1; i <= totalQuestions; i++) {
+            if (!responses[`grammar-item${i}`]) {
+                targetQuestion = i;
+                break;
+            }
+        }
+        
+        showQuestionCard(targetQuestion);
+    }
+
+
     function updateProgressBar(current, total) {
         const percentage = (current / total) * 100;
         $("#progressBar").css("width", percentage + "%");
@@ -479,6 +505,7 @@
     function updateAnsweredCount() {
         const answeredCount = Object.keys(responses).length;
         $("#answered-count").text(answeredCount);
+        $("#total-count").text(totalQuestions);
         
         // Check for missing questions
         if (answeredCount < totalQuestions) {
@@ -490,12 +517,22 @@
             }
             
             if (missingQuestions.length > 0) {
-                $("#missing-questions").html(`Missing responses for questions: ${missingQuestions.join(', ')}`);
+                const missingCount = missingQuestions.length;
+                $("#missing-questions").html(
+                    `<strong>Warning:</strong> You have ${missingCount} unanswered question${missingCount > 1 ? 's' : ''} (${missingQuestions.slice(0, 5).join(', ')}${missingQuestions.length > 5 ? '...' : ''})`
+                );
+                // Change submit button appearance
+                $("#final-submit-button").removeClass("btn-primary").addClass("btn-warning");
+                $("#final-submit-button").html('<i class="fas fa-exclamation-triangle"></i> Submit Anyway');
             } else {
                 $("#missing-questions").html("");
+                $("#final-submit-button").removeClass("btn-warning").addClass("btn-primary");
+                $("#final-submit-button").html('Submit Evaluation');
             }
         } else {
-            $("#missing-questions").html("");
+            $("#missing-questions").html('<i class="fas fa-check-circle text-success"></i> All questions answered!');
+            $("#final-submit-button").removeClass("btn-warning").addClass("btn-success");
+            $("#final-submit-button").html('<i class="fas fa-check"></i> Submit Evaluation');
         }
     }
 

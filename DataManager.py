@@ -49,6 +49,7 @@ def allocate_task(prolific_id, session_id):
     """
     try:
         with create_connection() as conn:
+            print("Database connection established.")
             cursor = conn.cursor()
             placeholder = "%s" if hasattr(conn, "server_version") else "?"
             is_postgres = hasattr(conn, "server_version")
@@ -84,7 +85,7 @@ def allocate_task(prolific_id, session_id):
                 )
                 num_in_progress = cursor.fetchone()[0]
 
-                if num_in_progress < 10:  # COMPLETIONS_PER_TASK = 10
+                if num_in_progress < 20:  # COMPLETIONS_PER_TASK = 10
                     # Lock a specific waiting task row
                     if is_postgres:
                         cursor.execute(
@@ -147,6 +148,7 @@ def expire_tasks(time_limit=3600):
     """
     try:
         with create_connection() as conn:
+            print("Database connection established.")
             cursor = conn.cursor()
             current_time = datetime.now()
 
@@ -191,6 +193,7 @@ def complete_task(id, json_string, prolific_id):
     """
     try:
         with create_connection() as conn:
+            print("Database connection established.")
             cursor = conn.cursor()
 
             placeholder = "%s" if hasattr(conn, "server_version") else "?"
@@ -224,6 +227,7 @@ def get_all_tasks():
     """
     try:
         with create_connection() as conn:
+            print("Database connection established.")
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM tasks")
             tasks = cursor.fetchall()
@@ -296,6 +300,7 @@ def check_consent(prolific_id, session_id):
     """
     try:
         with create_connection() as conn:
+            print("Database connection established.")
             cursor = conn.cursor()
             placeholder = "%s" if hasattr(conn, "server_version") else "?"
 
